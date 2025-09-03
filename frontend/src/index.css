@@ -1,0 +1,109 @@
+:root {
+  font-family:system-ui;
+  line-height: 1.5;
+  font-weight: 500;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.85);
+  background-color: #151515;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.search-container {           
+  max-height: 225px; 
+  overflow-y: auto;        
+  margin: 0 auto;
+  width: 20%;
+}
+
+.crypto-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.crypto-table th,
+.crypto-table td {
+  padding: 12px 15px;
+  text-align: left;
+  word-wrap: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crypto-table th {
+  background-color: #272727;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.crypto-table tr:nth-child(even) {
+  background-color: #1a1a1a;
+}
+
+.crypto-table tr:hover {
+  background-color: #6865651f;
+}
+
+.crypto-table td {
+  font-size: 14px;
+}
+
+.button-container {
+  margin: 20px 0;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.dark-btn {
+  background-color: #272727;
+  color: #f1f1f1;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.dark-btn:hover {
+  background-color: #333333;
+  transform: translateY(-1px);
+}
+
+.dark-btn:active {
+  background-color: #1e1e1e;
+  transform: translateY(0);
+}
+
+.search-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.search-bar input {
+  padding: 10px;
+  border-radius: 5px;
+  border: none;
+  width: 250px;
+  background-color: #1e1e1e;
+  color: #f1f1f1;
+}
+
+.search-bar input:focus {
+  outline: 2px solid #333;
+}
