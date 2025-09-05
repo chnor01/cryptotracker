@@ -24,12 +24,19 @@
 }
 
 .crypto-table {
-  width: 100%;
   border-collapse: collapse;
   background-color: #1e1e1e;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  margin: 0 auto;
+}
+
+.crypto-table--wide {
+  width: 100%;
+}
+.crypto-table--narrow {
+  width: 20%;
 }
 
 .crypto-table th,
@@ -47,6 +54,11 @@
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 1px;
+  cursor: pointer;
+}
+
+.crypto-table th:hover {
+  background-color: #333333;
 }
 
 .crypto-table tr:nth-child(even) {
@@ -106,4 +118,26 @@
 
 .search-bar input:focus {
   outline: 2px solid #333;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 15px;
+  gap: 10px;
+}
+
+.pagination button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  background-color: #272727;
+  color: #fff;
+  cursor: pointer;
+}
+
+.pagination button:disabled {
+  background-color: #444;
+  cursor: not-allowed;
 }

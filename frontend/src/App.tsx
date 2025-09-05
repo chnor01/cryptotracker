@@ -22,7 +22,7 @@ const Navigation = () => {
         </Link>
       )}
       {location.pathname === "/search" && (
-        <Link to="/search">
+        <Link to="/">
           <div className="button-container">
             <button className="dark-btn">Back to dashboard</button>
           </div>

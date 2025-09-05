@@ -21,13 +21,8 @@ export const searchCoin = async (coin: string, limit=20) => {
   return response.data;
 };
 
-export const getTopGainers = async (gainer: boolean, limit = 20) => {
-  const response = await api.get(`/coins/top-gainers-losers?gainer=${gainer}&limit=${limit}`);
-  return response.data;
-};
-
-export const getTopMarket = async (limit = 20) => {
-    const response = await api.get(`coins/top-market-cap?limit=${limit}`)
+export const getTopMarket = async (limit = 20, offset=0, sortkey="usd_market_cap", sortorder="desc") => {
+    const response = await api.get(`coins/top-market-cap?limit=${limit}&offset=${offset}&sortkey=${sortkey}&sortorder=${sortorder}`)
     return response.data;
 };
 

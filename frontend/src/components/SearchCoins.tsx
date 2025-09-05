@@ -22,7 +22,7 @@ function SearchCoin() {
       setError("");
 
       try {
-        const response = await searchCoin(query, 25);
+        const response = await searchCoin(query, 50);
         setResults(response);
         console.log(response)
       } catch (err) {
@@ -49,7 +49,7 @@ function SearchCoin() {
       {error && <p style={{ color: "red" }}>{error}</p>}
       <div className="search-container">
       {results.length > 0 && (
-        <table className="crypto-table">
+        <table className="crypto-table crypto-table--wide">
           <tbody>
             {results.map((coin) => (
               <tr key={coin.id}>

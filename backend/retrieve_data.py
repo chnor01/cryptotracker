@@ -51,8 +51,8 @@ def save_coins_id(data):
     cursor.close()
     conn.close()
         
-result_coins_id = retrieve_coins_id()
-save_coins_id(result_coins_id)
+#result_coins_id = retrieve_coins_id()
+#save_coins_id(result_coins_id)
 
     
 def retrieve_coins_prices(coin_ids):   
