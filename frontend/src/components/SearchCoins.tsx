@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { searchCoin } from "../api/cryptoApi";
+import { useNavigate } from "react-router-dom";
 
 interface Coin {
   id: string;
@@ -11,57 +12,61 @@ function SearchCoin() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Coin[]>([]);
   const [error, setError] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
 
-    
+  const navigate = useNavigate();
+
   useEffect(() => {
-  if (!query.trim()) {
-    setResults([]);
-    return;
-  }
+    if (!query.trim()) {
+      setResults([]);
+      return;
+    }
     const delay = setTimeout(async () => {
       setError("");
 
       try {
         const response = await searchCoin(query, 50);
         setResults(response);
-        console.log(response)
+        console.log(response);
       } catch (err) {
-        setError("Coin not found or API error");
+        setError("No results");
         setResults([]);
       }
     }, 300);
     return () => clearTimeout(delay);
-    }, [query]);
-
+  }, [query]);
 
   return (
-    <div className="app-container">
-      
-      <div className="search-bar">
+    <div className="search-coins-app">
+      <div className="search-container">
         <input
           type="text"
-          placeholder="Enter coin name, symbol, or ID..."
+          placeholder="Search coins"
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
       </div>
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <div className="search-container">
-      {results.length > 0 && (
-        <table className="crypto-table crypto-table--wide">
-          <tbody>
-            {results.map((coin) => (
-              <tr key={coin.id}>
-                <td>{coin.name}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      <div className="results-container">
+        {results.length > 0 && isFocused && (
+          <table className="crypto-table crypto-table--wide">
+            <tbody>
+              {results.map((coin) => (
+                <tr
+                  key={coin.id}
+                  onMouseDown={() => navigate(`/coins/${coin.id}`)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <td>{coin.name}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
-};
+}
 
 export default SearchCoin;

@@ -88,18 +88,28 @@ def get_all_coin_prices():
 def get_coins_by_market_cap(
     limit: int = Query(20, gt=0, le=100),
     offset: int = Query(0, ge=0, le=10000),
-    sortkey: Literal["name", "usd", "usd_market_cap", "usd_24h_vol", "usd_24h_change"] = Query("usd_market_cap"),
-    sortorder: Literal["asc", "desc"] = Query("desc")
+    sort_key: Literal["id", "name", "usd", "usd_market_cap", "usd_24h_vol", "usd_24h_change"] = Query("usd_market_cap"),
+    sort_order: Literal["asc", "desc"] = Query("desc")
     ):
     try: 
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
+        SORT_COLUMNS = {
+        "id": "c.id",
+        "name": "c.name",
+        "usd": "p.usd", 
+        "usd_market_cap": "p.usd_market_cap",
+        "usd_24h_vol": "p.usd_24h_vol",
+        "usd_24h_change": "p.usd_24h_change"
+        }
+        sort_column = SORT_COLUMNS[sort_key]
+        
         query = f"""
             SELECT c.id, c.name, p.usd, p.usd_market_cap, p.usd_24h_vol, p.usd_24h_change, p.last_updated_at
             FROM coins c
             JOIN prices p ON c.id = p.id
-            ORDER BY p.{sortkey} {sortorder} 
+            ORDER BY {sort_column} {sort_order}
             LIMIT %s OFFSET %s;
         """
         cursor.execute(query, (limit, offset))
@@ -172,6 +182,37 @@ def get_coins_summary():
 
         if not result:
             raise HTTPException(status_code=500, detail="Failed to retrieve data")
+
+        return result
+    
+    except mysql.connector.Error as err:
+        raise HTTPException(500, detail=str(err))
+    
+    
+@app.get("/api/v1/coins/{coin_id}/historical")
+def get_historical_prices(
+    coin_id: str, 
+    days: int = Query(7, gt=0, le=1000)
+):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        query = f"""
+            SELECT id, timestamp, usd, usd_market_cap, volume
+            FROM hist
+            WHERE id = %s
+            ORDER BY timestamp ASC
+            LIMIT %s;
+        """
+        cursor.execute(query, (coin_id, days))
+        result = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        if not result:
+            raise HTTPException(status_code=404, detail="No coin found")
 
         return result
     

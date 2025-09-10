@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -6,44 +6,33 @@ import {
   Link,
   useLocation,
 } from "react-router-dom";
-import TopMarket from './components/TopMarket';
-import SearchCoins from './components/SearchCoins';
-
-const Navigation = () => {
-  const location = useLocation();
-
-  return (
-    <nav>
-      {location.pathname === "/topcap" && (
-        <Link to="/">
-          <div className="button-container">
-            <button className="dark-btn">Back to dashboard</button>
-          </div>
-        </Link>
-      )}
-      {location.pathname === "/search" && (
-        <Link to="/">
-          <div className="button-container">
-            <button className="dark-btn">Back to dashboard</button>
-          </div>
-        </Link>
-      )}
-    </nav>
-  );
-};
-
+import TopMarket from "./components/TopMarket";
+import SearchCoins from "./components/SearchCoins";
+import CoinPage from "./components/CoinPage";
 
 const App = () => {
   return (
-    <Router>
-      <div>
-        <Navigation />
+    <div>
+      <Router>
+        <header>
+          <Link to="" style={{ textDecoration: "none", color: "inherit" }}>
+            <h1 className="cryptotracker-h1">CryptoTracker</h1>
+          </Link>
+        </header>
         <Routes>
-          <Route path="/topcap" element={<TopMarket />} />
-          <Route path="search" element={<SearchCoins />} />
+          <Route
+            path=""
+            element={
+              <>
+                <SearchCoins />
+                <TopMarket />
+              </>
+            }
+          ></Route>
+          <Route path="/coins/:coinId" element={<CoinPage />} />
         </Routes>
-      </div>
-    </Router>
+      </Router>
+    </div>
   );
 };
 

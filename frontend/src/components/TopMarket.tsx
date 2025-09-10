@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getTopMarket } from "../api/cryptoApi";
+import { useNavigate } from "react-router-dom";
 
 interface Coin {
   id: string;
@@ -17,15 +18,22 @@ function TopMarket() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
-   
+
   const [totalCoins, setTotalCoins] = useState(1000); // todo: fetch total num of coins from DB instead
   const totalPages = Math.ceil(totalCoins / itemsPerPage);
+
+  const navigate = useNavigate();
 
   const fetchCoins = async (page: number) => {
     try {
       const offset = (page - 1) * itemsPerPage;
-      const response = await getTopMarket(itemsPerPage, offset, sortKey, sortOrder);
-      console.log(response)
+      const response = await getTopMarket(
+        itemsPerPage,
+        offset,
+        sortKey,
+        sortOrder
+      );
+      console.log(response);
       setCoins(response);
     } catch (err) {
       console.error(err);
@@ -36,7 +44,6 @@ function TopMarket() {
   useEffect(() => {
     fetchCoins(currentPage);
   }, [currentPage, sortKey, sortOrder]);
-
 
   const sortedCoins = [...coins].sort((a, b) => {
     const valA = a[sortKey];
@@ -52,26 +59,25 @@ function TopMarket() {
     }
     return 0;
   });
-  
+
   const handleSort = (key: keyof Coin) => {
     if (sortKey === key) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
       setSortKey(key);
-      setSortOrder("asc");
+      setSortOrder("desc");
     }
   };
 
   const sortSymbol = sortOrder === "asc" ? "\u02C5" : "\u02C4";
 
   return (
-    <div className="app-container">
-      <h2>Coins Live Prices</h2>
-      <table className="crypto-table">
+    <div className="top-market-app">
+      <table className="crypto-table crypto-table--narrow">
         <thead>
           <tr>
-            <th onClick={() => handleSort("id")}>
-              Coin {sortKey === "id" && sortSymbol}
+            <th onClick={() => handleSort("name")}>
+              Coin {sortKey === "name" && sortSymbol}
             </th>
             <th onClick={() => handleSort("usd")}>
               Price {sortKey === "usd" && sortSymbol}
@@ -91,10 +97,10 @@ function TopMarket() {
         <tbody>
           {sortedCoins.map((coin) => (
             <tr key={coin.id}>
-              <td>{coin.name}</td>
+              <td onClick={() => navigate(`/coins/${coin.id}`)}>{coin.name}</td>
               <td>${coin.usd.toLocaleString()}</td>
-              <td>{coin.usd_market_cap.toLocaleString()}</td>
-              <td>{coin.usd_24h_vol.toLocaleString()}</td>
+              <td>${coin.usd_market_cap.toLocaleString()}</td>
+              <td>${coin.usd_24h_vol.toLocaleString()}</td>
               <td
                 style={{
                   color: coin.usd_24h_change < 0 ? "red" : "lightgreen",
