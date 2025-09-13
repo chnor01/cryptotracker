@@ -60,10 +60,9 @@ def save_coins_id():
 
     
 def retrieve_coins_prices(coin_ids):   
-    url = "https://api.coingecko.com/api/v3/simple/price"
+    url = "https://api.coingecko.com/api/v3/coins/markets"
     headers = {"x-cg-demo-api-key" : COINGECKO_API_KEY}
-    params = {"vs_currencies": "usd", "ids": ",".join(coin_ids), "include_market_cap": "true", 
-              "include_24hr_vol": "true", "include_24hr_change": "true", "include_last_updated_at": "true", "precision": "3"}
+    params = {"vs_currency": "usd", "ids": ",".join(coin_ids), "per_page": 250, "precision": 3}
     try:
         response = requests.get(url, headers=headers, params=params)
         return response.json()
@@ -76,46 +75,111 @@ def save_coins_prices(data):
 
     conn = get_db_connection()
     cursor = conn.cursor()
+    
+    def parse_iso_datetime(iso_str):
+        if iso_str:
+            return datetime.fromisoformat(iso_str.replace("Z", "+00:00")).strftime("%Y-%m-%d %H:%M:%S")
+        return None
 
-    one_hour_ago = datetime.now(timezone.utc) - timedelta(hours=1)
-    
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS prices (id VARCHAR(255) PRIMARY KEY, usd DECIMAL(16,3), usd_market_cap BIGINT, 
-    usd_24h_vol BIGINT, usd_24h_change DECIMAL(16,3), last_updated_at DATETIME)""")
+            CREATE TABLE IF NOT EXISTS prices (
+            id VARCHAR(255) PRIMARY KEY,
+            current_price DECIMAL(16,3),
+            market_cap BIGINT,
+            market_cap_rank INT,
+            fully_diluted_valuation BIGINT,
+            total_volume BIGINT,
+            high_24h DECIMAL(16,3),
+            low_24h DECIMAL(16,3),
+            price_change_24h DECIMAL(16,3),
+            price_change_percentage_24h DECIMAL(16, 2),
+            market_cap_change_24h BIGINT,
+            market_cap_change_percentage_24h DECIMAL(16, 2),
+            circulating_supply BIGINT,
+            total_supply BIGINT,
+            max_supply BIGINT,
+            ath DECIMAL(22,3),
+            ath_date DATETIME,
+            atl DECIMAL(16,3),
+            atl_date DATETIME,
+            last_updated_at DATETIME
+            );
+        """)
     
+    one_hour_ago = datetime.now(timezone.utc) - timedelta(hours=1)
     details_list = []
-    for coin_id, details in data.items():
-        usd = details.get("usd")
-        usd_market_cap = details.get("usd_market_cap")
-        usd_24h_vol = details.get("usd_24h_vol")
-        usd_24h_change = details.get("usd_24h_change")
-        unix_time = details.get("last_updated_at")
+    for coin in data:
+        coin_id = coin.get("id")
+        current_price = coin.get("current_price")
+        market_cap = coin.get("market_cap")
+        total_volume = coin.get("total_volume")
+        market_cap_rank = coin.get("market_cap_rank")
+        fully_diluted_valuation = coin.get("fully_diluted_valuation")
+        high_24h = coin.get("high_24h")
+        low_24h = coin.get("low_24h")
+        price_change_24h = coin.get("price_change_24h")
+        price_change_percentage_24h = coin.get("price_change_percentage_24h") or 0.0
+        market_cap_change_24h = coin.get("market_cap_change_24h")
+        market_cap_change_percentage_24h = coin.get("market_cap_change_percentage_24h") or 0.0
+        circulating_supply = coin.get("circulating_supply")
+        total_supply = coin.get("total_supply")
+        max_supply = coin.get("max_supply")
+        ath = coin.get("ath")
+        ath_date = parse_iso_datetime(coin.get("ath_date"))
+        atl = coin.get("atl")
+        atl_date = parse_iso_datetime(coin.get("atl_date"))
+        last_updated_at = parse_iso_datetime(coin.get("last_updated"))
+
         
-        if usd is None or usd <= 0:
-            continue
-        if usd_market_cap is None or usd_market_cap <= 0:
-            continue
-        if unix_time is None:
-            continue
-        if usd_24h_change is None:
-            usd_24h_change = 0.0
-            
-        last_updated_at = datetime.fromtimestamp(unix_time, tz=timezone.utc)
-        if last_updated_at < one_hour_ago:
+        if not current_price or not market_cap or not last_updated_at:
             continue
         
-        details_list.append((coin_id, usd, usd_market_cap, usd_24h_vol, usd_24h_change, last_updated_at))
-        
+        cleaned_timestamp = datetime.strptime(last_updated_at, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+        if cleaned_timestamp < one_hour_ago:
+            continue
+
+        details_list.append((
+        coin_id, current_price, market_cap, market_cap_rank,
+        fully_diluted_valuation, total_volume, high_24h, low_24h,
+        price_change_24h, price_change_percentage_24h,
+        market_cap_change_24h, market_cap_change_percentage_24h,
+        circulating_supply, total_supply, max_supply,
+        ath, ath_date, atl, atl_date, last_updated_at
+    ))
+
+
     if details_list:
-    
         sql = """
-            INSERT INTO prices (id, usd, usd_market_cap, usd_24h_vol, usd_24h_change, last_updated_at) VALUES (%s, %s, %s, %s, %s, %s)
-            ON DUPLICATE KEY UPDATE usd = VALUES(usd),
-            usd_market_cap = VALUES(usd_market_cap),
-            usd_24h_vol = VALUES(usd_24h_vol),
-            usd_24h_change = VALUES(usd_24h_change),
+            INSERT INTO prices (id, current_price, market_cap, market_cap_rank,
+            fully_diluted_valuation, total_volume, high_24h, low_24h,
+            price_change_24h, price_change_percentage_24h,
+            market_cap_change_24h, market_cap_change_percentage_24h,
+            circulating_supply, total_supply, max_supply,
+            ath, ath_date, atl, atl_date, last_updated_at) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE
+            current_price = VALUES(current_price),
+            market_cap = VALUES(market_cap),
+            market_cap_rank = VALUES(market_cap_rank),
+            fully_diluted_valuation = VALUES(fully_diluted_valuation),
+            total_volume = VALUES(total_volume),
+            high_24h = VALUES(high_24h),
+            low_24h = VALUES(low_24h),
+            price_change_24h = VALUES(price_change_24h),
+            price_change_percentage_24h = VALUES(price_change_percentage_24h),
+            market_cap_change_24h = VALUES(market_cap_change_24h),
+            market_cap_change_percentage_24h = VALUES(market_cap_change_percentage_24h),
+            circulating_supply = VALUES(circulating_supply),
+            total_supply = VALUES(total_supply),
+            max_supply = VALUES(max_supply),
+            ath = VALUES(ath),
+            ath_date = VALUES(ath_date),
+            atl = VALUES(atl),
+            atl_date = VALUES(atl_date),
             last_updated_at = VALUES(last_updated_at)
-            """
+        """
+
         try:
             cursor.executemany(sql, details_list)
             conn.commit()
@@ -130,7 +194,7 @@ def chunk_list(allcoins, batch):
     for i in range(0, len(allcoins), batch):
         yield allcoins[i:i + batch]
     
-def batch_retrieve_coins_prices():
+def batch_retrieve_save_coins_prices():
     result_coins_id = retrieve_coins_id()
     coin_ids = []
     for coin in result_coins_id:
@@ -141,12 +205,11 @@ def batch_retrieve_coins_prices():
         save_coins_prices(data)
         time.sleep(2)
         
-#batch_retrieve_coins_prices()
 
 def retrieve_top_market_cap_coins():   
     url = "https://api.coingecko.com/api/v3/coins/markets"
     headers = {"x-cg-demo-api-key" : COINGECKO_API_KEY}
-    params = {"vs_currency": "usd", "order": "market_cap_desc", "per_page": 100}
+    params = {"vs_currency": "usd", "order": "market_cap_desc", "per_page": 50}
     try:
         response = requests.get(url, headers=headers, params=params)
         return response.json()
@@ -215,4 +278,8 @@ def batch_retrieve_save_hist_prices():
         save_historical_prices(coin_id, hist_data)
         time.sleep(2)
     
-batch_retrieve_save_hist_prices()
+    
+
+#save_coins_id()
+batch_retrieve_save_coins_prices()
+#batch_retrieve_save_hist_prices()

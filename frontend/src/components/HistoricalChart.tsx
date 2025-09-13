@@ -8,7 +8,7 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from "recharts";
-import { getHistoricalPrices } from "../api/cryptoApi";
+import { getHistoricalPrices, getCoin } from "../api/cryptoApi";
 
 interface HistoricalData {
   id: string;
@@ -18,19 +18,34 @@ interface HistoricalData {
   volume: number;
 }
 
+interface Coin {
+  id: string;
+  symbol: string;
+  current_price: number;
+  market_cap_rank: number;
+  price_change_percentage_24h: number;
+}
+
 interface HistoricalChartProps {
   coinId: string;
 }
 
 function HistoricalChart({ coinId }: HistoricalChartProps) {
   const [data, setData] = useState<HistoricalData[]>([]);
+  const [livePrices, setLivePrices] = useState<Coin | null>(null);
   const [days, setDays] = useState(30);
+  const [coinMetric, setCoinMetric] = useState<
+    "usd" | "volume" | "usd_market_cap"
+  >("usd");
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const rawData = await getHistoricalPrices(coinId, days);
-        console.log("raw", rawData);
+        const [liveData, rawData] = await Promise.all([
+          getCoin(coinId),
+          getHistoricalPrices(coinId, days),
+        ]);
+        console.log(rawData);
         const formatted: HistoricalData[] = rawData.map(
           (item: HistoricalData) => ({
             ...item,
@@ -38,7 +53,7 @@ function HistoricalChart({ coinId }: HistoricalChartProps) {
           })
         );
         setData(formatted);
-        console.log("form", formatted);
+        setLivePrices(liveData);
       } catch (err) {
         console.error("Error fetching data:", err);
       }
@@ -49,8 +64,47 @@ function HistoricalChart({ coinId }: HistoricalChartProps) {
 
   return (
     <div className="chart-container">
-      <h2>{coinId.toUpperCase()} Price (USD)</h2>
-      <div className="chart-range-buttons">
+      <h2>
+        {livePrices && (
+          <>
+            <span
+              style={{
+                backgroundColor: "#222",
+                padding: "3px 10px",
+                borderRadius: "10px",
+                fontWeight: "bold",
+                fontSize: 18,
+                marginRight: 6,
+                boxShadow: "0 0 5px rgba(0,0,0,0.5)",
+              }}
+            >
+              #{livePrices.market_cap_rank}
+            </span>
+            <span
+              style={{ letterSpacing: "2px", fontWeight: 200, fontSize: 22 }}
+            >
+              {(coinId + " " + livePrices.symbol).toUpperCase()}{" "}
+            </span>
+            <span style={{ fontWeight: "bold", fontSize: 26 }}>
+              ${livePrices.current_price}
+            </span>{" "}
+            <span
+              style={{
+                color:
+                  livePrices.price_change_percentage_24h < 0
+                    ? "red"
+                    : "lightgreen",
+                fontWeight: "bold",
+                fontSize: 26,
+              }}
+            >
+              {livePrices.price_change_percentage_24h}%
+            </span>
+          </>
+        )}
+      </h2>
+
+      <div className="chart-days-buttons">
         {[7, 30, 90, 365].map((d) => (
           <button
             key={d}
@@ -61,8 +115,28 @@ function HistoricalChart({ coinId }: HistoricalChartProps) {
           </button>
         ))}
       </div>
+      <div className="chart-metrics-buttons">
+        <button
+          onClick={() => setCoinMetric("usd")}
+          className={coinMetric === "usd" ? "active" : ""}
+        >
+          USD
+        </button>
+        <button
+          onClick={() => setCoinMetric("volume")}
+          className={coinMetric === "volume" ? "active" : ""}
+        >
+          Volume
+        </button>
+        <button
+          onClick={() => setCoinMetric("usd_market_cap")}
+          className={coinMetric === "usd_market_cap" ? "active" : ""}
+        >
+          Market Cap
+        </button>
+      </div>
 
-      <ResponsiveContainer width="50%" height={400}>
+      <ResponsiveContainer width="100%" height={400}>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="5 5" stroke="#eee" />
           <XAxis
@@ -72,15 +146,8 @@ function HistoricalChart({ coinId }: HistoricalChartProps) {
           <YAxis />
           <Line
             type="monotone"
-            dataKey="usd"
-            name="USD"
-            stroke="#8884d8"
-            strokeWidth={2}
-            dot={false}
-          />
-          <Line
-            type="monotone"
-            dataKey="USD"
+            dataKey={coinMetric}
+            name={coinMetric}
             stroke="#8884d8"
             strokeWidth={2}
             dot={false}

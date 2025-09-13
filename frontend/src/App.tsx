@@ -13,12 +13,11 @@ import CoinPage from "./components/CoinPage";
 const App = () => {
   return (
     <div>
+      <title>CryptoTracker</title>
       <Router>
-        <header>
-          <Link to="" style={{ textDecoration: "none", color: "inherit" }}>
-            <h1 className="cryptotracker-h1">CryptoTracker</h1>
-          </Link>
-        </header>
+        <Link to="" style={{ textDecoration: "none", color: "inherit" }}>
+          <h1 className="cryptotracker-h1">CryptoTracker</h1>
+        </Link>
         <Routes>
           <Route
             path=""

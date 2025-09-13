@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
-import { getTopMarket } from "../api/cryptoApi";
+import { getAllCoins } from "../api/cryptoApi";
 import { useNavigate } from "react-router-dom";
 
 interface Coin {
   id: string;
   name: string;
-  usd: number;
-  usd_market_cap: number;
-  usd_24h_vol: number;
-  usd_24h_change: number;
-  last_updated_at: number;
+  symbol: string;
+  current_price: number;
+  market_cap: number;
+  price_change_percentage_24h: number;
+  circulating_supply: number;
 }
 
 function TopMarket() {
   const [coins, setCoins] = useState<Coin[]>([]);
-  const [sortKey, setSortKey] = useState<keyof Coin>("usd_market_cap");
+  const [sortKey, setSortKey] = useState<keyof Coin>("market_cap");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
@@ -27,7 +27,7 @@ function TopMarket() {
   const fetchCoins = async (page: number) => {
     try {
       const offset = (page - 1) * itemsPerPage;
-      const response = await getTopMarket(
+      const response = await getAllCoins(
         itemsPerPage,
         offset,
         sortKey,
@@ -76,20 +76,25 @@ function TopMarket() {
       <table className="crypto-table crypto-table--narrow">
         <thead>
           <tr>
-            <th onClick={() => handleSort("name")}>
+            <th
+              onClick={() => handleSort("name")}
+              style={{ textAlign: "left" }}
+            >
               Coin {sortKey === "name" && sortSymbol}
             </th>
-            <th onClick={() => handleSort("usd")}>
-              Price {sortKey === "usd" && sortSymbol}
+            <th onClick={() => handleSort("current_price")}>
+              Price {sortKey === "current_price" && sortSymbol}
             </th>
-            <th onClick={() => handleSort("usd_market_cap")}>
-              Market Cap {sortKey === "usd_market_cap" && sortSymbol}
+            <th onClick={() => handleSort("price_change_percentage_24h")}>
+              24H Price %{" "}
+              {sortKey === "price_change_percentage_24h" && sortSymbol}
             </th>
-            <th onClick={() => handleSort("usd_24h_vol")}>
-              24H Volume {sortKey === "usd_24h_vol" && sortSymbol}
+            <th onClick={() => handleSort("market_cap")}>
+              Market Cap {sortKey === "market_cap" && sortSymbol}
             </th>
-            <th onClick={() => handleSort("usd_24h_change")}>
-              24H Change {sortKey === "usd_24h_change" && sortSymbol}
+            <th onClick={() => handleSort("circulating_supply")}>
+              Circulating Supply{" "}
+              {sortKey === "circulating_supply" && sortSymbol}
             </th>
           </tr>
         </thead>
@@ -97,17 +102,25 @@ function TopMarket() {
         <tbody>
           {sortedCoins.map((coin) => (
             <tr key={coin.id}>
-              <td onClick={() => navigate(`/coins/${coin.id}`)}>{coin.name}</td>
-              <td>${coin.usd.toLocaleString()}</td>
-              <td>${coin.usd_market_cap.toLocaleString()}</td>
-              <td>${coin.usd_24h_vol.toLocaleString()}</td>
+              <td
+                onClick={() => navigate(`/coins/${coin.id}`)}
+                style={{ textAlign: "left" }}
+              >
+                {coin.name}
+              </td>
+              <td>${coin.current_price.toLocaleString()}</td>
               <td
                 style={{
-                  color: coin.usd_24h_change < 0 ? "red" : "lightgreen",
+                  color:
+                    coin.price_change_percentage_24h < 0 ? "red" : "lightgreen",
                   fontWeight: "bold",
                 }}
               >
-                {coin.usd_24h_change.toFixed(2)}%
+                {coin.price_change_percentage_24h.toFixed(2)}%
+              </td>
+              <td>${coin.market_cap.toLocaleString()}</td>
+              <td>
+                {coin.circulating_supply} {coin.symbol.toUpperCase()}
               </td>
             </tr>
           ))}

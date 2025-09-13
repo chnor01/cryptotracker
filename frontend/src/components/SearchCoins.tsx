@@ -8,7 +8,7 @@ interface Coin {
   name: string;
 }
 
-function SearchCoin() {
+function SearchCoins() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Coin[]>([]);
   const [error, setError] = useState("");
@@ -58,7 +58,7 @@ function SearchCoin() {
                   onMouseDown={() => navigate(`/coins/${coin.id}`)}
                   style={{ cursor: "pointer" }}
                 >
-                  <td>{coin.name}</td>
+                  <td style={{ textAlign: "left" }}>{coin.name}</td>
                 </tr>
               ))}
             </tbody>
@@ -69,4 +69,4 @@ function SearchCoin() {
   );
 }
 
-export default SearchCoin;
+export default SearchCoins;

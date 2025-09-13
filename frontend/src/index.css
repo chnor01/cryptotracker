@@ -61,9 +61,9 @@
   border-collapse: collapse;
   background-color: #1e1e1e;
   border-radius: 8px;
-  overflow: hidden;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   margin: 0 auto;
+  table-layout: fixed;
 }
 
 .crypto-table--wide {
@@ -77,10 +77,10 @@
 .crypto-table th,
 .crypto-table td {
   padding: 13px 10px;
-  text-align: center;
   letter-spacing: 1.5px;
   font-weight: 600;
   cursor: pointer;
+  text-align: right;
 }
 
 .crypto-table th {
@@ -103,6 +103,10 @@
 
 .crypto-table td {
   font-size: 14px;
+  max-width: 100px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .button-container {
@@ -162,25 +166,26 @@
   margin: 10px;
   letter-spacing: 5px;
   cursor: pointer;
-  position: relative;
+  position: absolute;
 }
 
 .chart-container {
   position: relative;
   margin-left: 50px;
-  width: 100%;
+  margin-top: 80px;
+  width: 80%;
 }
 
-.chart-range-buttons {
+.chart-days-buttons {
   position: absolute;
-  top: 58px;
-  right: 900px;
+  top: 280px;
+  right: -50px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.chart-range-buttons button {
+.chart-days-buttons button {
   padding: 6px 12px;
   border-radius: 6px;
   border: 1px solid #000000;
@@ -190,18 +195,90 @@
   transition: all 0.2s ease;
 }
 
-.chart-range-buttons button:hover {
+.chart-days-buttons button:hover {
   background-color: #e0e0e0a1;
 }
 
-.chart-range-buttons button:active {
+.chart-days-buttons button:active {
   background-color: #8884d89b;
   color: #ffffff;
   border-color: #ffffff;
 }
 
-.chart-range-buttons button.active {
+.chart-days-buttons button.active {
   background-color: #8884d8;
   color: #ffffff;
   border-color: #ffffff;
+}
+
+.chart-metrics-buttons {
+  position: absolute;
+  top: 62px;
+  right: -95px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chart-metrics-buttons button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #000000;
+  background-color: #f0f0f021;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chart-metrics-buttons button:hover {
+  background-color: #e0e0e0a1;
+}
+
+.chart-metrics-buttons button:active {
+  background-color: #10b9819b;
+  color: #ffffff;
+  border-color: #ffffff;
+}
+
+.chart-metrics-buttons button.active {
+  background-color: #10b981;
+  color: #ffffff;
+  border-color: #ffffff;
+}
+
+.coin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-top: 140px;
+  margin-right: 20px;
+}
+
+.stat-card {
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  color: #ffffff;
+}
+
+.stat-card .label {
+  font-size: 0.85rem;
+  color: #aaa;
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.stat-card .value {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #fff;
+  text-align: center;
+}
+
+.stat-card .date {
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 4px;
+  text-align: center;
 }

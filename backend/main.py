@@ -37,10 +37,12 @@ def get_coin_price(coin_id: str):
         cursor = conn.cursor(dictionary=True)
 
         query = """
-            SELECT c.id, c.symbol, c.name, p.usd, p.usd_market_cap, p.usd_24h_vol, p.usd_24h_change, p.last_updated_at
+            SELECT c.id, c.symbol, c.name, p.current_price, p.market_cap, p.market_cap_rank, p.fully_diluted_valuation, p.total_volume,
+            p.high_24h, p.low_24h, p.price_change_24h, p.price_change_percentage_24h, p.market_cap_change_24h, p.market_cap_change_percentage_24h,
+            p.circulating_supply, p.total_supply, p.max_supply, p.ath, p.ath_date, p.atl, p.atl_date
             FROM coins c
             JOIN prices p ON c.id = p.id
-            WHERE c.id = %s;
+            WHERE p.id = %s;
         """
         cursor.execute(query, (coin_id,))
         result = cursor.fetchone()
@@ -57,38 +59,11 @@ def get_coin_price(coin_id: str):
         raise HTTPException(500, detail=str(err))
 
 
-@app.get("/api/v1/coins/all-coins")
-def get_all_coin_prices():
-    
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-
-        query = f"""
-            SELECT c.id, c.name, c.symbol, p.usd, p.usd_market_cap, p.usd_24h_vol, p.usd_24h_change, p.last_updated_at
-            FROM coins c
-            JOIN prices p ON c.id = p.id;
-        """
-        cursor.execute(query)
-        result = cursor.fetchall()
-
-        cursor.close()
-        conn.close()
-
-        if not result:
-            raise HTTPException(status_code=404, detail="No coins found")
-
-        return result
-    
-    except mysql.connector.Error as err:
-        raise HTTPException(500, detail=str(err))
-
-
-@app.get("/api/v1/coins/top-market-cap")
+@app.get("/api/v1/coins/all")
 def get_coins_by_market_cap(
     limit: int = Query(20, gt=0, le=100),
     offset: int = Query(0, ge=0, le=10000),
-    sort_key: Literal["id", "name", "usd", "usd_market_cap", "usd_24h_vol", "usd_24h_change"] = Query("usd_market_cap"),
+    sort_key: Literal["id", "name", "current_price", "market_cap", "price_change_percentage_24h", "circulating_supply"] = Query("market_cap"),
     sort_order: Literal["asc", "desc"] = Query("desc")
     ):
     try: 
@@ -98,15 +73,16 @@ def get_coins_by_market_cap(
         SORT_COLUMNS = {
         "id": "c.id",
         "name": "c.name",
-        "usd": "p.usd", 
-        "usd_market_cap": "p.usd_market_cap",
-        "usd_24h_vol": "p.usd_24h_vol",
-        "usd_24h_change": "p.usd_24h_change"
+        "symbol": "c.symbol",
+        "current_price": "p.current_price", 
+        "market_cap": "p.market_cap",
+        "price_change_percentage_24h": "p.price_change_percentage_24h",
+        "circulating_supply": "p.circulating_supply"
         }
         sort_column = SORT_COLUMNS[sort_key]
         
         query = f"""
-            SELECT c.id, c.name, p.usd, p.usd_market_cap, p.usd_24h_vol, p.usd_24h_change, p.last_updated_at
+            SELECT c.id, c.name, c.symbol, p.current_price, p.market_cap, p.price_change_percentage_24h, p.circulating_supply
             FROM coins c
             JOIN prices p ON c.id = p.id
             ORDER BY {sort_column} {sort_order}
@@ -141,7 +117,7 @@ def get_coin_search(
             FROM coins c
             JOIN prices p ON c.id = p.id
             WHERE c.id LIKE %s OR c.symbol LIKE %s OR c.name LIKE %s
-            ORDER BY p.usd_market_cap DESC
+            ORDER BY p.market_cap DESC
             LIMIT %s;
         """
         search_term = f"%{coin}%"
@@ -169,8 +145,8 @@ def get_coins_summary():
 
         query = """
             SELECT COUNT(*) as total_coins, 
-            SUM(usd_market_cap) as total_market_cap, 
-            AVG(usd) as avg_price 
+            SUM(market_cap) as total_market_cap, 
+            AVG(current_price) as avg_price 
             FROM prices;
         """
         
@@ -198,12 +174,16 @@ def get_historical_prices(
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
-        query = f"""
+        query = """
+            SELECT id, timestamp, usd, usd_market_cap, volume
+            FROM (
             SELECT id, timestamp, usd, usd_market_cap, volume
             FROM hist
             WHERE id = %s
-            ORDER BY timestamp ASC
-            LIMIT %s;
+            ORDER BY timestamp DESC
+            LIMIT %s
+            ) AS recent
+            ORDER BY timestamp ASC;
         """
         cursor.execute(query, (coin_id, days))
         result = cursor.fetchall()

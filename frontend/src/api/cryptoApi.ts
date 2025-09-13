@@ -11,11 +11,6 @@ export const getCoin = async (coin_id: string) => {
   return response.data;
 };
 
-export const getAllCoins = async () => {
-  const response = await api.get("/coins/all-coins");
-  return response.data;
-};
-
 export const searchCoin = async (coin: string, limit = 20) => {
   const response = await api.get("/coins/search", {
     params: { coin, limit },
@@ -23,13 +18,13 @@ export const searchCoin = async (coin: string, limit = 20) => {
   return response.data;
 };
 
-export const getTopMarket = async (
+export const getAllCoins = async (
   limit = 20,
   offset = 0,
   sort_key = "usd_market_cap",
   sort_order = "desc"
 ) => {
-  const response = await api.get("/coins/top-market-cap", {
+  const response = await api.get("/coins/all", {
     params: { limit, offset, sort_key, sort_order },
   });
   return response.data;
