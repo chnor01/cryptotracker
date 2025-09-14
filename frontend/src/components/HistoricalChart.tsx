@@ -7,6 +7,7 @@ import {
   Tooltip,
   CartesianGrid,
   ResponsiveContainer,
+  Area,
 } from "recharts";
 import { getHistoricalPrices, getCoin } from "../api/cryptoApi";
 
@@ -148,7 +149,7 @@ function HistoricalChart({ coinId }: HistoricalChartProps) {
             type="monotone"
             dataKey={coinMetric}
             name={coinMetric}
-            stroke="#8884d8"
+            stroke="#59b2e5ff"
             strokeWidth={2}
             dot={false}
           />

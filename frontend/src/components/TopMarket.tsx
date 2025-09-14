@@ -101,13 +101,8 @@ function TopMarket() {
 
         <tbody>
           {sortedCoins.map((coin) => (
-            <tr key={coin.id}>
-              <td
-                onClick={() => navigate(`/coins/${coin.id}`)}
-                style={{ textAlign: "left" }}
-              >
-                {coin.name}
-              </td>
+            <tr key={coin.id} onClick={() => navigate(`/coins/${coin.id}`)}>
+              <td style={{ textAlign: "left" }}>{coin.name}</td>
               <td>${coin.current_price.toLocaleString()}</td>
               <td
                 style={{
