@@ -102,7 +102,20 @@ function TopMarket() {
         <tbody>
           {sortedCoins.map((coin) => (
             <tr key={coin.id} onClick={() => navigate(`/coins/${coin.id}`)}>
-              <td style={{ textAlign: "left" }}>{coin.name}</td>
+              <td style={{ textAlign: "left" }}>
+                <img
+                  src={`http://localhost:8000/images/${coin.id}.png`}
+                  alt={coin.symbol}
+                  style={{
+                    width: 26,
+                    height: 26,
+                    marginRight: 8,
+                    verticalAlign: "middle",
+                    borderRadius: "50%",
+                  }}
+                />
+                {coin.name}
+              </td>
               <td>${coin.current_price.toLocaleString()}</td>
               <td
                 style={{

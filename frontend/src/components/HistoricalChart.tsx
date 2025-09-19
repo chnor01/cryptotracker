@@ -68,22 +68,21 @@ function HistoricalChart({ coinId }: HistoricalChartProps) {
       <h2>
         {livePrices && (
           <>
-            <span
-              style={{
-                backgroundColor: "#222",
-                padding: "3px 10px",
-                borderRadius: "10px",
-                fontWeight: "bold",
-                fontSize: 18,
-                marginRight: 6,
-                boxShadow: "0 0 5px rgba(0,0,0,0.5)",
-              }}
-            >
-              #{livePrices.market_cap_rank}
-            </span>
+            <span className="rank-badge">#{livePrices.market_cap_rank}</span>
             <span
               style={{ letterSpacing: "2px", fontWeight: 200, fontSize: 22 }}
             >
+              <img
+                src={`http://localhost:8000/images/${coinId}.png`}
+                alt={livePrices.symbol}
+                style={{
+                  width: 32,
+                  height: 32,
+                  marginRight: 8,
+                  verticalAlign: "middle",
+                  borderRadius: "50%",
+                }}
+              />
               {(coinId + " " + livePrices.symbol).toUpperCase()}{" "}
             </span>
             <span style={{ fontWeight: "bold", fontSize: 26 }}>
@@ -137,32 +136,36 @@ function HistoricalChart({ coinId }: HistoricalChartProps) {
         </button>
       </div>
 
-      <ResponsiveContainer width="100%" height={400}>
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="5 5" stroke="#eee" />
-          <XAxis
-            dataKey="timestamp"
-            tick={{ fill: "#ffffffd6", fontSize: 13 }}
-          />
-          <YAxis />
-          <Line
-            type="monotone"
-            dataKey={coinMetric}
-            name={coinMetric}
-            stroke="#59b2e5ff"
-            strokeWidth={2}
-            dot={false}
-          />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: "#1e293b",
-              border: "none",
-              borderRadius: "8px",
-            }}
-            labelStyle={{ color: "#94a3b8" }}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+      {data.length > 0 ? (
+        <ResponsiveContainer width="100%" height={400}>
+          <LineChart data={data}>
+            <CartesianGrid strokeDasharray="5 5" stroke="#eee" />
+            <XAxis
+              dataKey="timestamp"
+              tick={{ fill: "#ffffffd6", fontSize: 13 }}
+            />
+            <YAxis />
+            <Line
+              type="monotone"
+              dataKey={coinMetric}
+              name={coinMetric}
+              stroke="#59b2e5ff"
+              strokeWidth={2}
+              dot={false}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "#1e293b",
+                border: "none",
+                borderRadius: "8px",
+              }}
+              labelStyle={{ color: "#94a3b8" }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className="loading-chart">Loading chart...</div>
+      )}
     </div>
   );
 }

@@ -71,15 +71,28 @@ def retrieve_coins_prices(coin_ids):
         return []
 
 
-def save_coins_prices(data):
-
+def save_coins_prices(data, download_imgs=False):
     conn = get_db_connection()
     cursor = conn.cursor()
+    
+    SAVE_DIR = "backend/images"
+    os.makedirs(SAVE_DIR, exist_ok=True)
     
     def parse_iso_datetime(iso_str):
         if iso_str:
             return datetime.fromisoformat(iso_str.replace("Z", "+00:00")).strftime("%Y-%m-%d %H:%M:%S")
         return None
+    
+    def download_image(url, filepath):
+        if not os.path.exists(filepath):
+            try:
+                resp = requests.get(url)
+                resp.raise_for_status()
+                with open(filepath, "wb") as f:
+                    f.write(resp.content)
+                print(f"Saved {filepath}")
+            except Exception as e:
+                print(f"Failed to download {url}: {e}")
 
     cursor.execute("""
             CREATE TABLE IF NOT EXISTS prices (
@@ -102,7 +115,8 @@ def save_coins_prices(data):
             ath_date DATETIME,
             atl DECIMAL(16,3),
             atl_date DATETIME,
-            last_updated_at DATETIME
+            last_updated_at DATETIME,
+            image_path VARCHAR(255)
             );
         """)
     
@@ -129,7 +143,7 @@ def save_coins_prices(data):
         atl = coin.get("atl")
         atl_date = parse_iso_datetime(coin.get("atl_date"))
         last_updated_at = parse_iso_datetime(coin.get("last_updated"))
-
+        url = coin.get("image")
         
         if not current_price or not market_cap or not last_updated_at:
             continue
@@ -138,14 +152,20 @@ def save_coins_prices(data):
         if cleaned_timestamp < one_hour_ago:
             continue
 
+        filename = f"{coin_id}.png"
+        filepath = os.path.join(SAVE_DIR, filename)
+        relative_path = f"{SAVE_DIR}/{filename}"
+        if url and download_imgs:
+            download_image(url, filepath)
+            
         details_list.append((
         coin_id, current_price, market_cap, market_cap_rank,
         fully_diluted_valuation, total_volume, high_24h, low_24h,
         price_change_24h, price_change_percentage_24h,
         market_cap_change_24h, market_cap_change_percentage_24h,
         circulating_supply, total_supply, max_supply,
-        ath, ath_date, atl, atl_date, last_updated_at
-    ))
+        ath, ath_date, atl, atl_date, last_updated_at, relative_path
+        ))
 
 
     if details_list:
@@ -155,9 +175,9 @@ def save_coins_prices(data):
             price_change_24h, price_change_percentage_24h,
             market_cap_change_24h, market_cap_change_percentage_24h,
             circulating_supply, total_supply, max_supply,
-            ath, ath_date, atl, atl_date, last_updated_at) 
+            ath, ath_date, atl, atl_date, last_updated_at, image_path) 
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON DUPLICATE KEY UPDATE
             current_price = VALUES(current_price),
             market_cap = VALUES(market_cap),
@@ -177,7 +197,8 @@ def save_coins_prices(data):
             ath_date = VALUES(ath_date),
             atl = VALUES(atl),
             atl_date = VALUES(atl_date),
-            last_updated_at = VALUES(last_updated_at)
+            last_updated_at = VALUES(last_updated_at),
+            image_path = VALUES(image_path)
         """
 
         try:
@@ -202,7 +223,7 @@ def batch_retrieve_save_coins_prices():
     
     for batch in chunk_list(coin_ids, 250):
         data = retrieve_coins_prices(batch)
-        save_coins_prices(data)
+        save_coins_prices(data, download_imgs=True)
         time.sleep(2)
         
 

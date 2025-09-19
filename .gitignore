@@ -1,3 +1,8 @@
 .env
+
+
 backend/__pycache__
+backend/images
+
+
 frontend/node_modules

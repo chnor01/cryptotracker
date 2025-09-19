@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import os, mysql.connector
 from dotenv import load_dotenv
 from typing import Literal
@@ -28,6 +29,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+images_dir = os.path.join(os.getcwd(), "images")
+app.mount("/images", StaticFiles(directory=images_dir), name="images")
+
 
 @app.get("/api/v1/coin/{coin_id}")
 def get_coin_price(coin_id: str):
