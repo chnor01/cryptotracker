@@ -1,9 +1,13 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-import os, mysql.connector
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from dotenv import load_dotenv
 from typing import Literal
+from auth import hash_password, verify_password, create_access_token
+from jose import jwt, JWTError
+from datetime import datetime, timezone
+import os, mysql.connector
 
 
 load_dotenv()
@@ -12,6 +16,7 @@ MYSQL_HOST = os.getenv("MYSQL_HOST")
 MYSQL_USER = os.getenv("MYSQL_USER")
 MYSQL_PASSWD = os.getenv("MYSQL_PASSWD")
 MYSQL_DB = os.getenv("MYSQL_DB")
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 def get_db_connection():
     return mysql.connector.connect(
@@ -20,6 +25,8 @@ def get_db_connection():
         password=MYSQL_PASSWD,
         database=MYSQL_DB
     )
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 app = FastAPI(title="CryptoAPI", version="1.0")
 app.add_middleware(
@@ -32,6 +39,53 @@ app.add_middleware(
 
 images_dir = os.path.join(os.getcwd(), "images")
 app.mount("/images", StaticFiles(directory=images_dir), name="images")
+
+@app.post("/register")
+def register(username: str, email: str, password: str):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        hashed_pw = hash_password(password)
+        sql = "INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s)"
+        cursor.execute(sql, (username, email, hashed_pw))
+        
+        conn.commit()
+        return {"msg": "User registered successfully"}
+    
+    except mysql.connector.IntegrityError:
+        conn.rollback()
+        raise HTTPException(status_code=400, detail="Username or email already exists")
+    finally:
+        cursor.close()
+
+
+@app.post("/token")
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    sql = "SELECT * FROM users WHERE username=%s"
+    cursor.execute(sql, (form_data.username,))
+    user = cursor.fetchone()
+    cursor.close()
+    
+    if not user or not verify_password(form_data.password, user["password_hash"]):
+        raise HTTPException(status_code=401, detail="Invalid info")
+    
+    token = create_access_token({"user": user["username"]})
+    return {"access_token": token, "token_type": "bearer"}
+
+
+@app.get("/me")
+def read_users_me(token: str = Depends(oauth2_scheme)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        payload["exp"] = datetime.fromtimestamp(payload["exp"], tz=timezone.utc).isoformat()
+        return payload
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 
 @app.get("/api/v1/coin/{coin_id}")

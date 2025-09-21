@@ -80,21 +80,21 @@ function TopMarket() {
               onClick={() => handleSort("name")}
               style={{ textAlign: "left" }}
             >
-              Coin {sortKey === "name" && sortSymbol}
+              {sortKey === "name" && sortSymbol} Coin
             </th>
             <th onClick={() => handleSort("current_price")}>
-              Price {sortKey === "current_price" && sortSymbol}
+              {sortKey === "current_price" && sortSymbol} Price
             </th>
             <th onClick={() => handleSort("price_change_percentage_24h")}>
-              24H Price %{" "}
-              {sortKey === "price_change_percentage_24h" && sortSymbol}
+              {sortKey === "price_change_percentage_24h" && sortSymbol} 24H
+              Price %
             </th>
             <th onClick={() => handleSort("market_cap")}>
-              Market Cap {sortKey === "market_cap" && sortSymbol}
+              {sortKey === "market_cap" && sortSymbol} Market Cap
             </th>
             <th onClick={() => handleSort("circulating_supply")}>
-              Circulating Supply{" "}
-              {sortKey === "circulating_supply" && sortSymbol}
+              {sortKey === "circulating_supply" && sortSymbol} Circulating
+              Supply
             </th>
           </tr>
         </thead>

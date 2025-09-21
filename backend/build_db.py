@@ -299,8 +299,32 @@ def batch_retrieve_save_hist_prices():
         save_historical_prices(coin_id, hist_data)
         time.sleep(2)
     
+
+
+def create_users_table():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+            user_id INT AUTO_INCREMENT PRIMARY KEY,
+            username VARCHAR(100) UNIQUE NOT NULL,
+            email VARCHAR(255) UNIQUE NOT NULL,
+            password_hash VARCHAR(255) NOT NULL,
+            created_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+            """)
+    try:
+        conn.commit()
+        print("Created users table")
+    except Exception as e:
+        print(f"Error creating table: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+    
     
 
 #save_coins_id()
-batch_retrieve_save_coins_prices()
+#batch_retrieve_save_coins_prices()
 #batch_retrieve_save_hist_prices()
+create_users_table()
