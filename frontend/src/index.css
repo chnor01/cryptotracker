@@ -303,3 +303,78 @@
   margin-right: 6px;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
 }
+
+.register-wrapper {
+  min-height: 75vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.form-container {
+  width: 400px;
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+  padding: 10px;
+  text-align: center;
+}
+
+.register-title {
+  font-size: 1.5rem;
+  font-weight: 300;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  padding: 10px;
+}
+
+.form-field {
+  margin: 10px 0 10px 0;
+  padding: 15px;
+  font-size: 16px;
+  border: 0;
+  border-radius: 25px;
+}
+.input-error {
+  border: 2px solid #e74c3c;
+}
+
+.error-text {
+  color: #e74c3c;
+  font-size: 0.85rem;
+  margin-top: -8px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.submit-register-button {
+  background: #ffffff3e;
+  color: white;
+  cursor: pointer;
+  border: 0;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 25px;
+  font-size: 15px;
+}
+
+.signin-text {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.signin-text a {
+  color: #4cafef;
+  text-decoration: none;
+  font-weight: 500;
+  margin-left: 5px;
+}
+
+.signin-text a:hover {
+  text-decoration: underline;
+  color: #7cc8ff;
+}

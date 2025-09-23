@@ -5,8 +5,10 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from dotenv import load_dotenv
 from typing import Literal
 from auth import hash_password, verify_password, create_access_token
-from jose import jwt, JWTError
+from jose import jwt, JWTError, ExpiredSignatureError
 from datetime import datetime, timezone
+from pydantic import BaseModel, Field, EmailStr
+from typing import Annotated
 import os, mysql.connector
 
 
@@ -18,6 +20,18 @@ MYSQL_PASSWD = os.getenv("MYSQL_PASSWD")
 MYSQL_DB = os.getenv("MYSQL_DB")
 SECRET_KEY = os.getenv("SECRET_KEY")
 
+    
+class UserRegistration(BaseModel):
+    username: Annotated[
+        str,
+        Field(min_length=3, max_length=20, pattern="^[a-zA-Z0-9_]{3,20}$")
+    ]
+    email: EmailStr
+    password: Annotated[
+        str,
+        Field(min_length=8)
+    ]
+    
 def get_db_connection():
     return mysql.connector.connect(
         host=MYSQL_HOST,
@@ -40,50 +54,76 @@ app.add_middleware(
 images_dir = os.path.join(os.getcwd(), "images")
 app.mount("/images", StaticFiles(directory=images_dir), name="images")
 
-@app.post("/register")
-def register(username: str, email: str, password: str):
+
+
+@app.post("/api/v1/register")
+def register(user: UserRegistration):
+    conn = None
+    cursor = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         
-        hashed_pw = hash_password(password)
+        hashed_pw = hash_password(user.password)
         sql = "INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s)"
-        cursor.execute(sql, (username, email, hashed_pw))
+        cursor.execute(sql, (user.username, user.email, hashed_pw))
         
         conn.commit()
         return {"msg": "User registered successfully"}
     
     except mysql.connector.IntegrityError:
-        conn.rollback()
+        if conn:
+            conn.rollback()
         raise HTTPException(status_code=400, detail="Username or email already exists")
+    
+    except mysql.connector.Error as e:
+        if conn:
+            conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {e}")
+    
     finally:
-        cursor.close()
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
-@app.post("/token")
+@app.post("/api/v1/token")
 def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    
-    sql = "SELECT * FROM users WHERE username=%s"
-    cursor.execute(sql, (form_data.username,))
-    user = cursor.fetchone()
-    cursor.close()
-    
-    if not user or not verify_password(form_data.password, user["password_hash"]):
-        raise HTTPException(status_code=401, detail="Invalid info")
-    
-    token = create_access_token({"user": user["username"]})
-    return {"access_token": token, "token_type": "bearer"}
+    conn = None
+    cursor = None
+    try: 
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        sql = "SELECT * FROM users WHERE username=%s"
+        cursor.execute(sql, (form_data.username,))
+        user = cursor.fetchone()
+        cursor.close()
+        
+        if not user or not verify_password(form_data.password, user["password_hash"]):
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        
+        token = create_access_token({"user": user["username"]})
+        return {"access_token": token, "token_type": "bearer"}
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
-@app.get("/me")
+@app.get("/api/v1/me")
 def read_users_me(token: str = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        payload["exp"] = datetime.fromtimestamp(payload["exp"], tz=timezone.utc).isoformat()
-        return payload
+        payload_copy = payload.copy()
+        if "exp" in payload_copy:
+            payload_copy["exp"] = datetime.fromtimestamp(payload["exp"], tz=timezone.utc).isoformat()
+        return payload_copy
+    
+    except ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired")
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
