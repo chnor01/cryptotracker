@@ -73,7 +73,7 @@ function TopMarket() {
 
   return (
     <div className="top-market-app">
-      <table className="crypto-table crypto-table--narrow">
+      <table className="crypto-table crypto-table--topmarket">
         <thead>
           <tr>
             <th
@@ -104,7 +104,7 @@ function TopMarket() {
             <tr key={coin.id} onClick={() => navigate(`/coins/${coin.id}`)}>
               <td style={{ textAlign: "left" }}>
                 <img
-                  src={`http://localhost:8000/images/${coin.id}.png`}
+                  src={`http://localhost:8000/icons/${coin.id}.png`}
                   alt={coin.symbol}
                   style={{
                     width: 26,

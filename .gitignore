@@ -2,7 +2,7 @@
 
 
 backend/__pycache__
-backend/images
-
+backend/coin_icons/
+frontend/src/assets/icons/
 
 frontend/node_modules

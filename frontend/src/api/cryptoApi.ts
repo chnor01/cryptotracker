@@ -6,6 +6,8 @@ const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
+
+// attach token to every request
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
@@ -77,3 +79,15 @@ export const getCurrentUser = async () => {
   const response = await api.get("/me");
   return response.data;
 }
+
+export const addPortfolio = async (coin_id: string, amount: number) => {
+  const response = await api.post("/portfolio/add", {
+    coin_id, amount
+  });
+  return response.data;
+};
+
+export const getPortfolio = async () => {
+  const response = await api.get("/portfolio/get");
+  return response.data;
+};

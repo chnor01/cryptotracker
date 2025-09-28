@@ -8,14 +8,6 @@
   background-color: #151515;
 }
 
-.top-market-app {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 5px;
-  margin-top: 100px;
-}
-
 .search-coins-app {
   display: flex;
   flex-direction: column;
@@ -48,30 +40,38 @@
 .results-container {
   position: absolute;
   top: 2.8rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 500px;
-  border-radius: 8px;
+  left: 750px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  width: 422px;
   max-height: 300px;
   overflow-y: auto;
-  z-index: 1000;
+  z-index: 1;
+}
+
+.top-market-app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5px;
+  margin-top: 100px;
 }
 
 .crypto-table {
-  border-collapse: collapse;
   background-color: #1e1e1e;
-  border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   margin: 0 auto;
   table-layout: fixed;
 }
 
-.crypto-table--wide {
+.crypto-table--searchcoins {
   width: 100%;
+  border-radius: 5px;
 }
 
-.crypto-table--narrow {
+.crypto-table--topmarket {
   width: 65%;
+  border-collapse: collapse;
+  border-radius: 5px;
 }
 
 .crypto-table th,
@@ -87,14 +87,11 @@
   background-color: #272727;
   font-weight: bold;
   text-transform: uppercase;
+  border-radius: 2px;
 }
 
 .crypto-table th:hover {
   background-color: #333333;
-}
-
-.crypto-table tr:nth-child(even) {
-  background-color: #1a1a1a;
 }
 
 .crypto-table tr:hover {
@@ -107,6 +104,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  border-bottom: 1px solid #5c5c5c6b;
 }
 
 .button-container {
@@ -377,4 +375,100 @@
 .signin-text a:hover {
   text-decoration: underline;
   color: #7cc8ff;
+}
+
+.auth-buttons {
+  position: absolute;
+  right: 10px;
+  margin: 3px;
+}
+
+.auth-buttons button {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  padding: 10px 24px;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 1.5px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+}
+
+.auth-buttons .login-btn {
+  background-color: #225cdb;
+}
+.auth-buttons .login-btn:hover {
+  background-color: #225ddbc0;
+}
+.auth-buttons .register-btn {
+  background-color: #ffa200de;
+}
+.auth-buttons .register-btn:hover {
+  background-color: #ffa200ae;
+}
+
+.auth-buttons .logout-btn {
+  background-color: #00ff9dae;
+}
+.auth-buttons .logout-btn:hover {
+  background-color: #00ff9d7c;
+}
+
+.username {
+  position: absolute;
+  right: 10px;
+  font-size: 1rem;
+  letter-spacing: 1.5px;
+  font-weight: 600;
+  color: #f5f5f5;
+  padding: 8px 14px;
+  background-color: #10b9819b;
+  border-radius: 5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.username:hover {
+  background: #10b981c9;
+  transform: translateY(-2px);
+  cursor: pointer;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 50px;
+  right: 20px;
+  background: #2d2d2d;
+  padding: 10px;
+  border-radius: 10px;
+  margin-top: 5px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+  letter-spacing: 1.5px;
+  text-align: center;
+}
+
+.user-image {
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  padding: 10px;
+}
+
+.portfolio-btn {
+  position: absolute;
+  right: 300px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  padding: 10px 10px;
+  font-size: 16px;
+  letter-spacing: 1px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
 }

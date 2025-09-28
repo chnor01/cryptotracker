@@ -50,7 +50,7 @@ function SearchCoins() {
       </div>
       <div className="results-container">
         {results.length > 0 && isFocused && (
-          <table className="crypto-table crypto-table--wide">
+          <table className="crypto-table crypto-table--searchcoins">
             <tbody>
               {results.map((coin) => (
                 <tr
@@ -60,7 +60,7 @@ function SearchCoins() {
                 >
                   <td style={{ textAlign: "left" }}>
                     <img
-                      src={`http://localhost:8000/images/${coin.id}.png`}
+                      src={`http://localhost:8000/icons/${coin.id}.png`}
                       alt={coin.symbol}
                       style={{
                         width: 26,

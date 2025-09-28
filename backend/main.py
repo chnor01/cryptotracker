@@ -5,10 +5,10 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from dotenv import load_dotenv
 from typing import Literal
 from auth import hash_password, verify_password, create_access_token
-from jose import jwt, JWTError, ExpiredSignatureError
-from datetime import datetime, timezone
-from pydantic import BaseModel, Field, EmailStr
+from jose import jwt, JWTError
+from pydantic import BaseModel, Field, EmailStr, condecimal
 from typing import Annotated
+from decimal import Decimal
 import os, mysql.connector
 
 
@@ -51,8 +51,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-images_dir = os.path.join(os.getcwd(), "images")
-app.mount("/images", StaticFiles(directory=images_dir), name="images")
+icons_dir = os.path.join(os.getcwd(), "coin_icons")
+app.mount("/icons", StaticFiles(directory=icons_dir), name="icons")
 
 
 
@@ -102,9 +102,9 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
         cursor.close()
         
         if not user or not verify_password(form_data.password, user["password_hash"]):
-            raise HTTPException(status_code=401, detail="Invalid credentials")
+            raise HTTPException(status_code=401, detail="Invalid credentials", headers={"WWW-Authenticate": "Bearer"})
         
-        token = create_access_token({"user": user["username"]})
+        token = create_access_token({"user_id": user["user_id"]})
         return {"access_token": token, "token_type": "bearer"}
     finally:
         if cursor:
@@ -117,15 +117,23 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
 def read_users_me(token: str = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        payload_copy = payload.copy()
-        if "exp" in payload_copy:
-            payload_copy["exp"] = datetime.fromtimestamp(payload["exp"], tz=timezone.utc).isoformat()
-        return payload_copy
-    
-    except ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token has expired")
+        user_id: int = payload.get("user_id")
+        
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        sql = "SELECT user_id, username, email, created_time FROM users WHERE user_id=%s"
+        cursor.execute(sql, (user_id,))
+        user = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        return user
+
     except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
 
 
 @app.get("/api/v1/coin/{coin_id}")
@@ -297,3 +305,81 @@ def get_historical_prices(
     
     except mysql.connector.Error as err:
         raise HTTPException(500, detail=str(err))
+    
+    
+class PortfolioAdd(BaseModel):
+    coin_id: str
+    amount: Decimal = Field(gt=0, max_digits=18, decimal_places=8)
+
+@app.post("/api/v1/portfolio/add")
+def add_portfolio(
+    request: PortfolioAdd,
+    token: str = Depends(oauth2_scheme)
+):
+    conn = None
+    cursor = None
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        user_id: int = payload.get("user_id")
+        
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        query = """
+            INSERT INTO portfolio (user_id, coin_id, amount)
+            VALUES (%s, %s, %s)
+        """
+        cursor.execute(query, (user_id, request.coin_id, request.amount))
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+        
+        return {"msg": "Added to portfolio"}
+
+    except mysql.connector.Error as e:
+        if conn:
+            conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {e}")
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+            
+@app.get("/api/v1/portfolio/get")
+def get_portfolio(
+    token: str = Depends(oauth2_scheme)
+):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        user_id: int = payload.get("user_id")
+        
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        query = """
+            SELECT 
+            portfolio.id, portfolio.coin_id, portfolio.amount, portfolio.created_at, 
+            prices.current_price, prices.market_cap, prices.high_24h, prices.low_24h, prices.price_change_24h, 
+            prices.price_change_percentage_24h
+            FROM portfolio
+            JOIN prices ON portfolio.coin_id = prices.id
+            WHERE portfolio.user_id = %s;
+        """
+        
+        cursor.execute(query, (user_id,))
+        result = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        if not result:
+            raise HTTPException(status_code=404, detail="No data found")
+
+        return result
+    
+    except mysql.connector.Error as err:
+        raise HTTPException(500, detail=str(err))
+    

@@ -73,7 +73,7 @@ function HistoricalChart({ coinId }: HistoricalChartProps) {
               style={{ letterSpacing: "2px", fontWeight: 200, fontSize: 22 }}
             >
               <img
-                src={`http://localhost:8000/images/${coinId}.png`}
+                src={`http://localhost:8000/icons/${coinId}.png`}
                 alt={livePrices.symbol}
                 style={{
                   width: 32,

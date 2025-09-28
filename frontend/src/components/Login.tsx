@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { UserLogin } from "../api/cryptoApi";
 import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "./AuthContext";
+import { getCurrentUser } from "../api/cryptoApi";
 
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { setUser } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -15,8 +18,8 @@ function Login() {
 
     try {
       await UserLogin(username, password);
-      setUsername("");
-      setPassword("");
+      const userData = await getCurrentUser();
+      setUser(userData);
       navigate("/");
     } catch (err: any) {
       setError("Invalid credentials.");

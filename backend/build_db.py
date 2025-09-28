@@ -323,8 +323,30 @@ def create_users_table():
         conn.close()
     
     
+def create_portfolio_table():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+            CREATE TABLE IF NOT EXISTS portfolio (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            coin_id VARCHAR(255) NOT NULL,
+            amount DECIMAL(18,8) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE)
+    """)
+    try:
+        conn.commit()
+        print("Created portfolio table")
+    except Exception as e:
+        print(f"Error creating table: {e}")
+    finally:
+        cursor.close()
+        conn.close()
 
 #save_coins_id()
 #batch_retrieve_save_coins_prices()
 #batch_retrieve_save_hist_prices()
-create_users_table()
+#create_users_table()
+#create_portfolio_table()
