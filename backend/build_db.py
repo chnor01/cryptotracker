@@ -334,7 +334,9 @@ def create_portfolio_table():
             coin_id VARCHAR(255) NOT NULL,
             amount DECIMAL(18,8) NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE)
+            FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+            UNIQUE (user_id, coin_id)
+            )
     """)
     try:
         conn.commit()
@@ -349,4 +351,4 @@ def create_portfolio_table():
 #batch_retrieve_save_coins_prices()
 #batch_retrieve_save_hist_prices()
 #create_users_table()
-#create_portfolio_table()
+create_portfolio_table()

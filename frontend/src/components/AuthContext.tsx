@@ -30,6 +30,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setUser(null);
+          return;
+        }
         const userData = await getCurrentUser();
         setUser(userData);
       } catch {

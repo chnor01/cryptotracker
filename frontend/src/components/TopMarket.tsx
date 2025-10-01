@@ -33,7 +33,6 @@ function TopMarket() {
         sortKey,
         sortOrder
       );
-      console.log(response);
       setCoins(response);
     } catch (err) {
       console.error(err);
@@ -93,8 +92,7 @@ function TopMarket() {
               {sortKey === "market_cap" && sortSymbol} Market Cap
             </th>
             <th onClick={() => handleSort("circulating_supply")}>
-              {sortKey === "circulating_supply" && sortSymbol} Circulating
-              Supply
+              {sortKey === "circulating_supply" && sortSymbol} Supply
             </th>
           </tr>
         </thead>

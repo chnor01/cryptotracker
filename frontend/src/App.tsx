@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { Routes, Route, Link } from "react-router-dom";
 import { useState } from "react";
 import TopMarket from "./components/TopMarket";
 import SearchCoins from "./components/SearchCoins";
@@ -9,6 +9,7 @@ import Portfolio from "./components/Portfolio";
 import { useAuth } from "./components/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
 import defaultUser from "./assets/icons/defaultuser.png";
+import portfolio from "./assets/icons/portfolio.png";
 
 const App = () => {
   const { user, loading, logout } = useAuth();
@@ -63,7 +64,10 @@ const App = () => {
         <h1 className="cryptotracker-h1">CryptoTracker</h1>
       </Link>
       <Link to="/portfolio">
-        <button className="portfolio-btn">Portfolio</button>
+        <button className="portfolio-btn">
+          <img className="portfolio-image" src={portfolio} />
+          Portfolio
+        </button>
       </Link>
       <Routes>
         <Route path="/register" element={<UserRegister />}></Route>

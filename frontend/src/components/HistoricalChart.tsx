@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
   CartesianGrid,
   ResponsiveContainer,
-  Area,
 } from "recharts";
 import { getHistoricalPrices, getCoin } from "../api/cryptoApi";
 
@@ -138,18 +137,19 @@ function HistoricalChart({ coinId }: HistoricalChartProps) {
 
       {data.length > 0 ? (
         <ResponsiveContainer width="100%" height={400}>
-          <LineChart data={data}>
+          <AreaChart data={data}>
             <CartesianGrid strokeDasharray="5 5" stroke="#eee" />
             <XAxis
               dataKey="timestamp"
               tick={{ fill: "#ffffffd6", fontSize: 13 }}
             />
             <YAxis />
-            <Line
+            <Area
               type="monotone"
               dataKey={coinMetric}
               name={coinMetric}
               stroke="#59b2e5ff"
+              fill="#59b2e5a5"
               strokeWidth={2}
               dot={false}
             />
@@ -161,7 +161,7 @@ function HistoricalChart({ coinId }: HistoricalChartProps) {
               }}
               labelStyle={{ color: "#94a3b8" }}
             />
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
       ) : (
         <div className="loading-chart">Loading chart...</div>

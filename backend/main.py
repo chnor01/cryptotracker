@@ -308,7 +308,7 @@ def get_historical_prices(
     
     
 class PortfolioAdd(BaseModel):
-    coin_id: str
+    coin_id: str = Field(..., min_length=1)
     amount: Decimal = Field(gt=0, max_digits=18, decimal_places=8)
 
 @app.post("/api/v1/portfolio/add")
@@ -328,6 +328,7 @@ def add_portfolio(
         query = """
             INSERT INTO portfolio (user_id, coin_id, amount)
             VALUES (%s, %s, %s)
+            ON DUPLICATE KEY UPDATE amount = amount + VALUES(amount);
         """
         cursor.execute(query, (user_id, request.coin_id, request.amount))
         conn.commit()
