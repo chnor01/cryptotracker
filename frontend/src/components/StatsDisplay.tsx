@@ -45,7 +45,7 @@ function StatsDisplay({ coinId }: CoinStatsProps) {
       }
     };
     fetchCoinData();
-  }, [coinId]);
+  }, []);
 
   if (loading) return <p>Loading stats...</p>;
   if (!coinData) return <p>No data available.</p>;

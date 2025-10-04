@@ -54,6 +54,13 @@ export const getHistoricalPrices = async (coin_id: string, days = 7) => {
   return response.data;
 };
 
+export const getOHLC = async (coin_id: string, days = 7) => {
+  const response = await api.get(`/coins/${coin_id}/ohlc`, {
+    params: { days },
+  });
+  return response.data;
+};
+
 export const UserRegister = async (username: string, email: string, password: string) => {
   const response = await api.post("/register", {
     username, email, password

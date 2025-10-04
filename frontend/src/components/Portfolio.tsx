@@ -127,7 +127,6 @@ function Portfolio() {
               data={chartData}
               innerRadius={60}
               outerRadius={80}
-              paddingAngle={5}
               dataKey="value"
             >
               {chartData.map((entry, index) => (

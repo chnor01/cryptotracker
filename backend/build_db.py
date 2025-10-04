@@ -75,7 +75,7 @@ def save_coins_prices(data, download_imgs=False):
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    SAVE_DIR = "backend/images"
+    SAVE_DIR = "backend/coin_icons"
     os.makedirs(SAVE_DIR, exist_ok=True)
     
     def parse_iso_datetime(iso_str):
@@ -223,7 +223,7 @@ def batch_retrieve_save_coins_prices():
     
     for batch in chunk_list(coin_ids, 250):
         data = retrieve_coins_prices(batch)
-        save_coins_prices(data, download_imgs=True)
+        save_coins_prices(data, download_imgs=False)
         time.sleep(2)
         
 
@@ -261,12 +261,13 @@ def save_historical_prices(coin_id, hist_data):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""CREATE TABLE IF NOT EXISTS hist (id VARCHAR(255), 
-                   timestamp DATETIME,
-                   usd DECIMAL(16,3), 
-                   usd_market_cap BIGINT, 
-                   volume BIGINT,
-                   PRIMARY KEY (id, timestamp))""")
+    cursor.execute("""CREATE TABLE IF NOT EXISTS hist (
+                coin_id VARCHAR(255) NOT NULL, 
+                timestamp DATETIME NOT NULL,
+                usd DECIMAL(16,3) NOT NULL, 
+                usd_market_cap BIGINT NOT NULL, 
+                volume BIGINT NOT NULL,
+                PRIMARY KEY (id, timestamp))""")
     
     sql = """
             INSERT INTO hist (id, timestamp, usd, usd_market_cap, volume)
@@ -347,8 +348,78 @@ def create_portfolio_table():
         cursor.close()
         conn.close()
 
+
+def retrieve_ohlc(coin_id):   
+    url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/ohlc"
+    headers = {"x-cg-demo-api-key" : COINGECKO_API_KEY}
+    params = {"vs_currency": "usd", "days": 30}
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        return response.json()
+    except requests.RequestException as e:
+        print(f"Error fetching data: {e}")
+        return []
+    
+
+def save_ohlc(coin_id, ohlc_data):
+    cleaned_data = []
+    for entry in ohlc_data:
+        timestamp_ms = entry[0]
+        timestamp = datetime.fromtimestamp(timestamp_ms/1000, tz=timezone.utc)
+        cleaned_data.append((coin_id, timestamp, entry[1], entry[2], entry[3], entry[4])) # append ..., open, high, low, close
+        
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+            CREATE TABLE IF NOT EXISTS ohlc (
+            coin_id VARCHAR(255) NOT NULL,
+            timestamp DATETIME NOT NULL,
+            open DECIMAL(18,8) NOT NULL,
+            high DECIMAL(18,8) NOT NULL,
+            low DECIMAL(18,8) NOT NULL,
+            close DECIMAL(18,8) NOT NULL,
+            PRIMARY KEY (coin_id, timestamp)
+        );
+        """)
+    
+    sql = """
+        INSERT INTO ohlc (coin_id, timestamp, open, high, low, close)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+        open = VALUES(open),
+        high = VALUES(high),
+        low = VALUES(low),
+        close = VALUES(close)
+    """
+
+    try:
+        cursor.executemany(sql, cleaned_data)
+        conn.commit()
+        print(f"{cursor.rowcount} record inserted.")
+    except Exception as e:
+        print(f"Error inserting data: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+        
+
+def batch_retrieve_save_ohlc():
+    res = retrieve_top_market_cap_coins()
+    top_marketcap_coins = []
+    for coin in res:
+        top_marketcap_coins.append(coin.get("id"))
+    
+    for coin_id in top_marketcap_coins:
+        ohlc_data = retrieve_ohlc(coin_id)
+        save_ohlc(coin_id, ohlc_data)
+        time.sleep(2)
+
+
+
 #save_coins_id()
 #batch_retrieve_save_coins_prices()
 #batch_retrieve_save_hist_prices()
 #create_users_table()
-create_portfolio_table()
+#create_portfolio_table()
+#batch_retrieve_save_ohlc()

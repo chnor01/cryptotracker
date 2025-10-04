@@ -283,14 +283,42 @@ def get_historical_prices(
 
         query = """
             SELECT id, timestamp, usd, usd_market_cap, volume
-            FROM (
-            SELECT id, timestamp, usd, usd_market_cap, volume
             FROM hist
             WHERE id = %s
-            ORDER BY timestamp DESC
-            LIMIT %s
-            ) AS recent
+            AND timestamp >= NOW() - INTERVAL %s DAY
             ORDER BY timestamp ASC;
+        """
+        cursor.execute(query, (coin_id, days))
+        result = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        if not result:
+            raise HTTPException(status_code=404, detail="No coin found")
+
+        return result
+    
+    except mysql.connector.Error as err:
+        raise HTTPException(500, detail=str(err))
+    
+
+@app.get("/api/v1/coins/{coin_id}/ohlc")
+def get_ohlc(
+    coin_id: str, 
+    days: int = Query(7, gt=0, le=100)
+):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        query = """
+            SELECT coin_id, timestamp, open, high, low, close
+            FROM ohlc
+            WHERE coin_id = %s
+            AND timestamp >= NOW() - INTERVAL %s DAY
+            ORDER BY timestamp ASC;
+
         """
         cursor.execute(query, (coin_id, days))
         result = cursor.fetchall()

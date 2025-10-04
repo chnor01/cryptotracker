@@ -49,6 +49,8 @@
 }
 .portfoliosearch-container {
   position: absolute;
+  top: 470px;
+  left: 560px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   width: 422px;
   max-height: 300px;
@@ -268,7 +270,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 12px;
-  margin-top: 140px;
+  margin-top: 20px;
   margin-right: 20px;
 }
 
@@ -403,6 +405,7 @@
   position: absolute;
   right: 10px;
   margin: 3px;
+  z-index: 10;
 }
 
 .auth-buttons button {
@@ -458,6 +461,7 @@
   height: 32px;
   cursor: pointer;
   padding: 5px;
+  z-index: 10;
 }
 
 .portfolio-btn {
@@ -473,6 +477,7 @@
   transition: all 0.3s ease;
   display: flex;
   height: 38px;
+  z-index: 10;
 }
 
 .portfolio-image {
