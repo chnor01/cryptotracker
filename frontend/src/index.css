@@ -45,7 +45,8 @@
   width: 422px;
   max-height: 300px;
   overflow-y: auto;
-  z-index: 1;
+  background: rgba(0, 0, 0, 1);
+  z-index: 100;
 }
 .portfoliosearch-container {
   position: absolute;
@@ -67,8 +68,6 @@
 }
 
 .crypto-table {
-  background-color: #1e1e1e;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   margin: 0 auto;
   table-layout: fixed;
 }
@@ -104,8 +103,6 @@
 }
 
 .crypto-table th {
-  background-color: #272727;
-  text-transform: uppercase;
   font-weight: 400;
   border-radius: 2px;
   letter-spacing: 3px;
@@ -499,4 +496,45 @@
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.candlestick-container {
+  position: relative;
+  margin-left: 60px;
+}
+
+.candlestick-btns {
+  position: absolute;
+  top: 220px;
+  left: -50px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 10;
+}
+
+.candlestick-btns button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #000000;
+  background-color: #f0f0f021;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.candlestick-btns button:hover {
+  background-color: #e0e0e0a1;
+}
+
+.candlestick-btns button:active {
+  background-color: #db709468;
+  color: #ffffff;
+  border-color: #ffffff;
+}
+
+.candlestick-btns button.active {
+  background-color: #db70949d;
+  color: #ffffff;
+  border-color: #ffffff;
 }

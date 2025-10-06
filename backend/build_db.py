@@ -422,4 +422,4 @@ def batch_retrieve_save_ohlc():
 #batch_retrieve_save_hist_prices()
 #create_users_table()
 #create_portfolio_table()
-#batch_retrieve_save_ohlc()
+batch_retrieve_save_ohlc()

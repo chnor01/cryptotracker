@@ -14,8 +14,8 @@ interface Coin {
 
 function TopMarket() {
   const [coins, setCoins] = useState<Coin[]>([]);
-  const [sortKey, setSortKey] = useState<keyof Coin>("market_cap");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [sortKey, setSortKey] = useState<keyof Coin | null>("market_cap");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>("desc");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
 
@@ -44,31 +44,43 @@ function TopMarket() {
     fetchCoins(currentPage);
   }, [currentPage, sortKey, sortOrder]);
 
-  const sortedCoins = [...coins].sort((a, b) => {
-    const valA = a[sortKey];
-    const valB = b[sortKey];
+  const sortedCoins =
+    sortKey && sortOrder
+      ? [...coins].sort((a, b) => {
+          const valA = a[sortKey];
+          const valB = b[sortKey];
 
-    if (typeof valA === "number" && typeof valB === "number") {
-      return sortOrder === "asc" ? valA - valB : valB - valA;
-    }
-    if (typeof valA === "string" && typeof valB === "string") {
-      return sortOrder === "asc"
-        ? valA.localeCompare(valB)
-        : valB.localeCompare(valA);
-    }
-    return 0;
-  });
+          if (typeof valA === "number" && typeof valB === "number") {
+            return sortOrder === "asc" ? valA - valB : valB - valA;
+          }
+          if (typeof valA === "string" && typeof valB === "string") {
+            return sortOrder === "asc"
+              ? valA.localeCompare(valB)
+              : valB.localeCompare(valA);
+          }
+          return 0;
+        })
+      : coins;
 
   const handleSort = (key: keyof Coin) => {
-    if (sortKey === key) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    } else {
+    if (sortKey !== key) {
       setSortKey(key);
       setSortOrder("desc");
+    } else {
+      if (sortOrder === "desc") {
+        setSortOrder("asc");
+      } else if (sortOrder === "asc") {
+        setSortKey(null);
+        setSortOrder(null);
+      } else {
+        setSortOrder("desc");
+      }
     }
   };
-
-  const sortSymbol = sortOrder === "asc" ? "\u02C5" : "\u02C4";
+  const getSortSymbol = (key: keyof Coin) => {
+    if (sortKey !== key || !sortOrder) return "";
+    return sortOrder === "asc" ? "\u02C5" : "\u02C4";
+  };
 
   return (
     <div className="top-market-app">
@@ -79,24 +91,22 @@ function TopMarket() {
               onClick={() => handleSort("name")}
               style={{ textAlign: "left" }}
             >
-              {sortKey === "name" && sortSymbol} Coin
+              {getSortSymbol("name")} Coin
             </th>
             <th onClick={() => handleSort("current_price")}>
-              {sortKey === "current_price" && sortSymbol} Price
+              {getSortSymbol("current_price")} Price
             </th>
             <th onClick={() => handleSort("price_change_percentage_24h")}>
-              {sortKey === "price_change_percentage_24h" && sortSymbol} 24H
-              Price %
+              {getSortSymbol("price_change_percentage_24h")} 24H change
             </th>
             <th onClick={() => handleSort("market_cap")}>
-              {sortKey === "market_cap" && sortSymbol} Market Cap
+              {getSortSymbol("market_cap")} Market cap
             </th>
             <th onClick={() => handleSort("circulating_supply")}>
-              {sortKey === "circulating_supply" && sortSymbol} Supply
+              {getSortSymbol("circulating_supply")} Supply
             </th>
           </tr>
         </thead>
-
         <tbody>
           {sortedCoins.map((coin) => (
             <tr key={coin.id} onClick={() => navigate(`/coins/${coin.id}`)}>

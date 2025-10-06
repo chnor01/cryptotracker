@@ -35,7 +35,7 @@ function Candlestick({ coinId = "bitcoin" }: CandlestickProps) {
     };
 
     fetchData();
-  }, []);
+  }, [days, coinId]);
 
   const options = {
     animationEnabled: true,
@@ -46,6 +46,19 @@ function Candlestick({ coinId = "bitcoin" }: CandlestickProps) {
     },
     axisY: {
       prefix: "$",
+      labelFormatter: function (e) {
+        if (e.value >= 1_000_000_000_000) {
+          return `${e.value / 1_000_000_000_000}T`;
+        } else if (e.value >= 1_000_000_000) {
+          return `${e.value / 1_000_000_000}B`;
+        } else if (e.value >= 1_000_000) {
+          return `${e.value / 1_000_000}M`;
+        } else if (e.value >= 1_000) {
+          return `${e.value / 1_000}K`;
+        } else {
+          return e.value;
+        }
+      },
     },
     data: [
       {
@@ -66,10 +79,25 @@ function Candlestick({ coinId = "bitcoin" }: CandlestickProps) {
   };
 
   return (
-    <CanvasJSChart
-      options={options}
-      onRef={(ref) => (chartRef.current = ref)}
-    />
+    <div className="candlestick-container">
+      <div className="candlestick-btns">
+        {[1, 7, 14, 30].map((d) => (
+          <button
+            key={d}
+            onClick={() => setDays(d)}
+            className={days === d ? "active" : ""}
+          >
+            {`${d}D`}
+          </button>
+        ))}
+      </div>
+      <div>
+        <CanvasJSChart
+          options={options}
+          onRef={(ref) => (chartRef.current = ref)}
+        />
+      </div>
+    </div>
   );
 }
 

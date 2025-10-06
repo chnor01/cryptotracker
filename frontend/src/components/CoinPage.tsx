@@ -12,12 +12,12 @@ function CoinPage() {
   return (
     <div>
       <SearchCoins />
-      <div style={{ display: "flex", gap: "16px" }}>
-        <div style={{ flex: 2, display: "flex", gap: "16px" }}>
+      <div style={{ display: "flex" }}>
+        <div style={{ flex: 2, display: "flex" }}>
           <div style={{ flex: 1 }}>
             <HistoricalChart coinId={coinId} />
           </div>
-          <div style={{ flex: 1, marginTop: "140px", marginRight: "30px" }}>
+          <div style={{ flex: 1, paddingTop: "140px", paddingRight: "60px" }}>
             <Candlestick coinId={coinId} />
           </div>
         </div>

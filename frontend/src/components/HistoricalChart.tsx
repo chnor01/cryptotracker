@@ -60,7 +60,7 @@ function HistoricalChart({ coinId }: HistoricalChartProps) {
     };
 
     loadData();
-  }, [days]);
+  }, [days, coinId]);
 
   return (
     <div className="chart-container">
@@ -143,7 +143,18 @@ function HistoricalChart({ coinId }: HistoricalChartProps) {
               dataKey="timestamp"
               tick={{ fill: "#ffffffd6", fontSize: 13 }}
             />
-            <YAxis />
+            <YAxis
+              tickFormatter={(value) => {
+                if (value >= 1_000_000_000_000)
+                  return `$${value / 1_000_000_000_000}T`;
+                else if (value >= 1_000_000_000)
+                  return `$${value / 1_000_000_000}B`;
+                else if (value >= 1_000_000) return `$${value / 1_000_000}M`;
+                else if (value >= 1_000) return `$${value / 1_000}K`;
+                return value;
+              }}
+              tick={{ fill: "#ffffffd6", fontSize: 13 }}
+            />
             <Area
               type="monotone"
               dataKey={coinMetric}
@@ -159,7 +170,7 @@ function HistoricalChart({ coinId }: HistoricalChartProps) {
                 border: "none",
                 borderRadius: "8px",
               }}
-              labelStyle={{ color: "#94a3b8" }}
+              labelStyle={{ color: "#ffffffd6" }}
             />
           </AreaChart>
         </ResponsiveContainer>
