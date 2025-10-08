@@ -18,30 +18,34 @@ function TopMarket() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>("desc");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
-
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [totalCoins, setTotalCoins] = useState(1000); // todo: fetch total num of coins from DB instead
   const totalPages = Math.ceil(totalCoins / itemsPerPage);
 
   const navigate = useNavigate();
 
-  const fetchCoins = async (page: number) => {
-    try {
-      const offset = (page - 1) * itemsPerPage;
-      const response = await getAllCoins(
-        itemsPerPage,
-        offset,
-        sortKey,
-        sortOrder
-      );
-      setCoins(response);
-    } catch (err) {
-      console.error(err);
-      console.log("Failed to fetch coins.");
-    }
-  };
-
   useEffect(() => {
-    fetchCoins(currentPage);
+    const fetchCoins = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const offset = (currentPage - 1) * itemsPerPage;
+        const response = await getAllCoins(
+          itemsPerPage,
+          offset,
+          sortKey,
+          sortOrder
+        );
+        setCoins(response);
+      } catch (err) {
+        console.error(err);
+        setCoins([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCoins();
   }, [currentPage, sortKey, sortOrder]);
 
   const sortedCoins =
@@ -84,65 +88,84 @@ function TopMarket() {
 
   return (
     <div className="top-market-app">
-      <table className="crypto-table crypto-table--topmarket">
-        <thead>
-          <tr>
-            <th
-              onClick={() => handleSort("name")}
-              style={{ textAlign: "left" }}
-            >
-              {getSortSymbol("name")} Coin
-            </th>
-            <th onClick={() => handleSort("current_price")}>
-              {getSortSymbol("current_price")} Price
-            </th>
-            <th onClick={() => handleSort("price_change_percentage_24h")}>
-              {getSortSymbol("price_change_percentage_24h")} 24H change
-            </th>
-            <th onClick={() => handleSort("market_cap")}>
-              {getSortSymbol("market_cap")} Market cap
-            </th>
-            <th onClick={() => handleSort("circulating_supply")}>
-              {getSortSymbol("circulating_supply")} Supply
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortedCoins.map((coin) => (
-            <tr key={coin.id} onClick={() => navigate(`/coins/${coin.id}`)}>
-              <td style={{ textAlign: "left" }}>
-                <img
-                  src={`http://localhost:8000/icons/${coin.id}.png`}
-                  alt={coin.symbol}
-                  style={{
-                    width: 26,
-                    height: 26,
-                    marginRight: 8,
-                    verticalAlign: "middle",
-                    borderRadius: "50%",
-                  }}
-                />
-                {coin.name}
-              </td>
-              <td>${coin.current_price.toLocaleString()}</td>
-              <td
-                style={{
-                  color:
-                    coin.price_change_percentage_24h < 0 ? "red" : "lightgreen",
-                  fontWeight: "bold",
-                }}
+      {error && (
+        <div
+          className="loading-wrapper"
+          style={{ width: "1200px", height: "850px" }}
+        >
+          {error}
+        </div>
+      )}
+      {loading && (
+        <div
+          className="loading-wrapper"
+          style={{ width: "1200px", height: "850px" }}
+        >
+          <span className="loader"></span>
+        </div>
+      )}
+      {!loading && !error && coins.length > 0 && (
+        <table className="crypto-table crypto-table--topmarket">
+          <thead>
+            <tr>
+              <th
+                onClick={() => handleSort("name")}
+                style={{ textAlign: "left" }}
               >
-                {coin.price_change_percentage_24h.toFixed(2)}%
-              </td>
-              <td>${coin.market_cap.toLocaleString()}</td>
-              <td>
-                {coin.circulating_supply} {coin.symbol.toUpperCase()}
-              </td>
+                {getSortSymbol("name")} Coin
+              </th>
+              <th onClick={() => handleSort("current_price")}>
+                {getSortSymbol("current_price")} Price
+              </th>
+              <th onClick={() => handleSort("price_change_percentage_24h")}>
+                {getSortSymbol("price_change_percentage_24h")} 24H change
+              </th>
+              <th onClick={() => handleSort("market_cap")}>
+                {getSortSymbol("market_cap")} Market cap
+              </th>
+              <th onClick={() => handleSort("circulating_supply")}>
+                {getSortSymbol("circulating_supply")} Supply
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-
+          </thead>
+          <tbody>
+            {sortedCoins.map((coin) => (
+              <tr key={coin.id} onClick={() => navigate(`/coins/${coin.id}`)}>
+                <td style={{ textAlign: "left" }}>
+                  <img
+                    src={`http://localhost:8000/icons/${coin.id}.png`}
+                    alt={coin.symbol}
+                    style={{
+                      width: 26,
+                      height: 26,
+                      marginRight: 8,
+                      verticalAlign: "middle",
+                      borderRadius: "50%",
+                    }}
+                  />
+                  {coin.name}
+                </td>
+                <td>${coin.current_price.toLocaleString()}</td>
+                <td
+                  style={{
+                    color:
+                      coin.price_change_percentage_24h < 0
+                        ? "red"
+                        : "lightgreen",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {coin.price_change_percentage_24h.toFixed(2)}%
+                </td>
+                <td>${coin.market_cap.toLocaleString()}</td>
+                <td>
+                  {coin.circulating_supply} {coin.symbol.toUpperCase()}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
       <div className="pagination">
         <button
           disabled={currentPage === 1}

@@ -17,21 +17,31 @@ interface CandlestickProps {
   coinId: string;
 }
 
-function Candlestick({ coinId = "bitcoin" }: CandlestickProps) {
+function Candlestick({ coinId }: CandlestickProps) {
   const chartRef = useRef<any>(null);
-  const [days, setDays] = useState(14);
+  const [days, setDays] = useState(30);
   const [dataPoints, setDataPoints] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
+    setError(null);
     const fetchData = async () => {
-      const ohlcData: OHLCDataPoint[] = await getOHLC(coinId, days);
-
-      const canvasData = ohlcData.map((point) => ({
-        x: new Date(point.timestamp),
-        y: [point.open, point.high, point.low, point.close],
-      }));
-
-      setDataPoints(canvasData);
+      try {
+        const ohlcData: OHLCDataPoint[] = await getOHLC(coinId, days);
+        const canvasData = ohlcData.map((point) => ({
+          x: new Date(point.timestamp),
+          y: [point.open, point.high, point.low, point.close],
+        }));
+        setDataPoints(canvasData);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError("Failed to fetch data");
+        setDataPoints([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchData();
@@ -39,13 +49,42 @@ function Candlestick({ coinId = "bitcoin" }: CandlestickProps) {
 
   const options = {
     animationEnabled: true,
+    zoomEnabled: true,
     theme: "dark1",
     backgroundColor: "#151515",
-    axisX: {
-      valueFormatString: "DD MMM hh:mm",
+    toolTip: {
+      contentFormatter: function (e) {
+        const point = e.entries[0].dataPoint;
+        const [open, high, low, close] = point.y;
+        const time = new Date(point.x).toLocaleTimeString([], {
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "numeric",
+        });
+        return `
+        <strong>${time}</strong><br/>
+        Open: $${open.toLocaleString()}<br/>
+        High: $${high.toLocaleString()}<br/>
+        Low: $${low.toLocaleString()}<br/>
+        Close: $${close.toLocaleString()}
+    `;
+      },
     },
-    axisY: {
+
+    axisX: {
+      labelFontColor: "#ffffffd6",
+      valueFormatString: "DD MMM",
+      gridThickness: 0,
+      lineThickness: 0,
+      tickLength: 0,
+    },
+    axisY2: {
+      labelFontColor: "#ffffffd6",
       prefix: "$",
+      gridThickness: 0,
+      lineThickness: 0,
+      tickLength: 0,
       labelFormatter: function (e) {
         if (e.value >= 1_000_000_000_000) {
           return `${e.value / 1_000_000_000_000}T`;
@@ -56,13 +95,14 @@ function Candlestick({ coinId = "bitcoin" }: CandlestickProps) {
         } else if (e.value >= 1_000) {
           return `${e.value / 1_000}K`;
         } else {
-          return e.value;
+          return e.value.toFixed(2);
         }
       },
     },
     data: [
       {
         type: "candlestick",
+        axisYType: "secondary",
         color: null,
         border: 0,
         risingColor: "#26a69a",
@@ -92,10 +132,28 @@ function Candlestick({ coinId = "bitcoin" }: CandlestickProps) {
         ))}
       </div>
       <div>
-        <CanvasJSChart
-          options={options}
-          onRef={(ref) => (chartRef.current = ref)}
-        />
+        {error && (
+          <div
+            className="loading-wrapper"
+            style={{ width: "800px", height: "350px" }}
+          >
+            {error}
+          </div>
+        )}
+        {loading && (
+          <div
+            className="loading-wrapper"
+            style={{ width: "800px", height: "350px" }}
+          >
+            <span className="loader"></span>
+          </div>
+        )}
+        {!loading && !error && dataPoints.length > 0 && (
+          <CanvasJSChart
+            options={options}
+            onRef={(ref) => (chartRef.current = ref)}
+          />
+        )}
       </div>
     </div>
   );

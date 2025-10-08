@@ -7,12 +7,10 @@ import Candlestick from "./Candlestick";
 function CoinPage() {
   const { coinId } = useParams<{ coinId: string }>();
 
-  if (!coinId) return <p>No coin selected</p>;
-
   return (
     <div>
       <SearchCoins />
-      <div style={{ display: "flex" }}>
+      <div style={{ display: "flex", minHeight: "541px" }}>
         <div style={{ flex: 2, display: "flex" }}>
           <div style={{ flex: 1 }}>
             <HistoricalChart coinId={coinId} />

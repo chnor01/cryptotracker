@@ -11,7 +11,8 @@ interface Coin {
 function SearchCoins() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Coin[]>([]);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
 
   const navigate = useNavigate();
@@ -22,15 +23,16 @@ function SearchCoins() {
       return;
     }
     const delay = setTimeout(async () => {
-      setError("");
-
+      setError(null);
+      setLoading(true);
       try {
         const response = await searchCoin(query, 50);
         setResults(response);
-        console.log(response);
       } catch (err) {
-        setError("No results");
+        setError("No coins found");
         setResults([]);
+      } finally {
+        setLoading(false);
       }
     }, 300);
     return () => clearTimeout(delay);
@@ -49,6 +51,22 @@ function SearchCoins() {
         />
       </div>
       <div className="results-container">
+        {error && isFocused && (
+          <div
+            className="loading-wrapper"
+            style={{ width: "422px", height: "300px" }}
+          >
+            {error}
+          </div>
+        )}
+        {loading && isFocused && (
+          <div
+            className="loading-wrapper"
+            style={{ width: "422px", height: "300px" }}
+          >
+            <span className="loader"></span>
+          </div>
+        )}
         {results.length > 0 && isFocused && (
           <table className="crypto-table crypto-table--searchcoins">
             <tbody>

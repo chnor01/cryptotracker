@@ -5,7 +5,6 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  CartesianGrid,
   ResponsiveContainer,
 } from "recharts";
 import { getHistoricalPrices, getCoin } from "../api/cryptoApi";
@@ -37,9 +36,13 @@ function HistoricalChart({ coinId }: HistoricalChartProps) {
   const [coinMetric, setCoinMetric] = useState<
     "usd" | "volume" | "usd_market_cap"
   >("usd");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const [liveData, rawData] = await Promise.all([
           getCoin(coinId),
@@ -56,6 +59,10 @@ function HistoricalChart({ coinId }: HistoricalChartProps) {
         setLivePrices(liveData);
       } catch (err) {
         console.error("Error fetching data:", err);
+        setError("Failed to fetch data");
+        setData([]);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -134,49 +141,77 @@ function HistoricalChart({ coinId }: HistoricalChartProps) {
           Market Cap
         </button>
       </div>
-
-      {data.length > 0 ? (
-        <ResponsiveContainer width="100%" height={400}>
-          <AreaChart data={data}>
-            <CartesianGrid strokeDasharray="5 5" stroke="#eee" />
-            <XAxis
-              dataKey="timestamp"
-              tick={{ fill: "#ffffffd6", fontSize: 13 }}
-            />
-            <YAxis
-              tickFormatter={(value) => {
-                if (value >= 1_000_000_000_000)
-                  return `$${value / 1_000_000_000_000}T`;
-                else if (value >= 1_000_000_000)
-                  return `$${value / 1_000_000_000}B`;
-                else if (value >= 1_000_000) return `$${value / 1_000_000}M`;
-                else if (value >= 1_000) return `$${value / 1_000}K`;
-                return value;
-              }}
-              tick={{ fill: "#ffffffd6", fontSize: 13 }}
-            />
-            <Area
-              type="monotone"
-              dataKey={coinMetric}
-              name={coinMetric}
-              stroke="#59b2e5ff"
-              fill="#59b2e5a5"
-              strokeWidth={2}
-              dot={false}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "#1e293b",
-                border: "none",
-                borderRadius: "8px",
-              }}
-              labelStyle={{ color: "#ffffffd6" }}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      ) : (
-        <div className="loading-chart">Loading chart...</div>
-      )}
+      <div>
+        {error && (
+          <div
+            className="loading-wrapper"
+            style={{ width: "800px", height: "350px" }}
+          >
+            {error}
+          </div>
+        )}
+        {loading && (
+          <div
+            className="loading-wrapper"
+            style={{ width: "800px", height: "350px" }}
+          >
+            <span className="loader"></span>
+          </div>
+        )}
+        {!loading && !error && data.length > 0 && (
+          <ResponsiveContainer width="100%" height={400}>
+            <AreaChart data={data}>
+              <XAxis
+                dataKey="timestamp"
+                tick={{ fill: "#ffffffd6", fontSize: 13 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                tickFormatter={(value) => {
+                  if (value >= 1_000_000_000_000)
+                    return `$${value / 1_000_000_000_000}T`;
+                  else if (value >= 1_000_000_000)
+                    return `$${value / 1_000_000_000}B`;
+                  else if (value >= 1_000_000) return `$${value / 1_000_000}M`;
+                  else if (value >= 1_000) return `$${value / 1_000}K`;
+                  return value.toFixed(2);
+                }}
+                tick={{ fill: "#ffffffd6", fontSize: 13 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Area
+                type="monotone"
+                dataKey={coinMetric}
+                name={coinMetric}
+                stroke="#59b2e5ff"
+                fill="rgba(89, 178, 229, 0.54)"
+                strokeWidth={2}
+                dot={false}
+              />
+              <Tooltip
+                formatter={(value, name) => {
+                  const labelMap = {
+                    usd: "USD",
+                    usd_market_cap: "Market cap",
+                    volume: "Volume",
+                  };
+                  const formattedMetric = labelMap[name];
+                  const formattedNum = value.toLocaleString();
+                  return [formattedNum, formattedMetric];
+                }}
+                contentStyle={{
+                  backgroundColor: "#1e293b",
+                  border: "none",
+                  borderRadius: "8px",
+                }}
+                labelStyle={{ color: "#ffffffd6" }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
+      </div>
     </div>
   );
 }

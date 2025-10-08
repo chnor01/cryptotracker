@@ -60,9 +60,15 @@ const App = () => {
         )}
       </div>
 
-      <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
-        <h1 className="cryptotracker-h1">CryptoTracker</h1>
+      <Link to="">
+        <h1
+          className="cryptotracker-h1"
+          onClick={() => (window.location.href = "/")}
+        >
+          CryptoTracker
+        </h1>
       </Link>
+
       <Link to="/portfolio">
         <button className="portfolio-btn">
           <img className="portfolio-image" src={portfolio} />

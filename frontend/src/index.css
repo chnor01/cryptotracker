@@ -4,7 +4,7 @@
   font-weight: 500;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.85);
+  color: #ffffffd9;
   background-color: #151515;
 }
 
@@ -184,6 +184,7 @@
   cursor: pointer;
   position: absolute;
   z-index: 10;
+  text-decoration: none;
 }
 
 .chart-container {
@@ -204,7 +205,7 @@
 
 .chart-days-buttons button {
   padding: 6px 12px;
-  border-radius: 6px;
+  border-radius: 25px;
   border: 1px solid #000000;
   background-color: #f0f0f021;
   color: #ffffff;
@@ -239,7 +240,7 @@
 
 .chart-metrics-buttons button {
   padding: 6px 12px;
-  border-radius: 6px;
+  border-radius: 25px;
   border: 1px solid #000000;
   background-color: #f0f0f021;
   color: #ffffff;
@@ -268,7 +269,8 @@
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 12px;
   margin-top: 20px;
-  margin-right: 20px;
+  margin-right: 10px;
+  margin-left: 10px;
 }
 
 .stat-card {
@@ -277,6 +279,12 @@
   padding: 12px 16px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
   color: #ffffff;
+}
+
+.stat-card:hover {
+  background-color: #92898932;
+  box-shadow: 0 0 15px #3375df26;
+  transform: translate(0, -5px);
 }
 
 .stat-card .label {
@@ -298,17 +306,6 @@
   color: #888;
   margin-top: 4px;
   text-align: center;
-}
-
-.loading-chart {
-  height: 450px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #94a3b8;
-  font-size: 18px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
 .rank-badge {
@@ -506,7 +503,7 @@
 .candlestick-btns {
   position: absolute;
   top: 220px;
-  left: -50px;
+  left: -55px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -515,7 +512,7 @@
 
 .candlestick-btns button {
   padding: 6px 12px;
-  border-radius: 6px;
+  border-radius: 25px;
   border: 1px solid #000000;
   background-color: #f0f0f021;
   color: #ffffff;
@@ -537,4 +534,48 @@
   background-color: #db70949d;
   color: #ffffff;
   border-color: #ffffff;
+}
+
+.loading-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loader {
+  width: 48px;
+  height: 48px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+}
+.loader::after,
+.loader::before {
+  content: "";
+  box-sizing: border-box;
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: rgb(48, 104, 188);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.loader::before {
+  left: auto;
+  top: auto;
+  right: 0;
+  bottom: 0;
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
