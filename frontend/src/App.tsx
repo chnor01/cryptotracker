@@ -59,16 +59,12 @@ const App = () => {
           )
         )}
       </div>
-
-      <Link to="">
-        <h1
-          className="cryptotracker-h1"
-          onClick={() => (window.location.href = "/")}
-        >
-          CryptoTracker
-        </h1>
-      </Link>
-
+      <h1
+        className="cryptotracker-h1"
+        onClick={() => (window.location.href = "/")}
+      >
+        CryptoTracker
+      </h1>
       <Link to="/portfolio">
         <button className="portfolio-btn">
           <img className="portfolio-image" src={portfolio} />

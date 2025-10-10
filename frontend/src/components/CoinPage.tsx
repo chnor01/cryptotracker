@@ -11,15 +11,14 @@ function CoinPage() {
     <div>
       <SearchCoins />
       <div style={{ display: "flex", minHeight: "541px" }}>
-        <div style={{ flex: 2, display: "flex" }}>
-          <div style={{ flex: 1 }}>
-            <HistoricalChart coinId={coinId} />
-          </div>
-          <div style={{ flex: 1, paddingTop: "140px", paddingRight: "60px" }}>
-            <Candlestick coinId={coinId} />
-          </div>
+        <div style={{ flex: 1 }}>
+          <HistoricalChart coinId={coinId} />
+        </div>
+        <div style={{ flex: 1, paddingTop: "140px", paddingRight: "60px" }}>
+          <Candlestick coinId={coinId} />
         </div>
       </div>
+
       <div>
         <StatsDisplay coinId={coinId} />
       </div>

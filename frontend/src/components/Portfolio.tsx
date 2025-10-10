@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
 import { addPortfolio, getPortfolio, searchCoin } from "@/api/cryptoApi";
-import {
-  PieChart,
-  Pie,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-  Legend,
-} from "recharts";
+import { PieChart, Pie, Tooltip, ResponsiveContainer, Cell } from "recharts";
+
+interface PiechartLabel {
+  name: string;
+  percent: number;
+}
 
 interface Coin {
   id: string;
@@ -57,7 +55,10 @@ function Portfolio() {
   const fetchPortfolio = async () => {
     try {
       const data = await getPortfolio();
-      setPortfolio(data);
+      const sortedByValue = [...data].sort(
+        (a, b) => b.amount * b.current_price - a.amount * a.current_price
+      );
+      setPortfolio(sortedByValue);
     } catch (err) {
       console.error("Error fetching portfolio:", err);
     }
@@ -66,6 +67,54 @@ function Portfolio() {
   useEffect(() => {
     fetchPortfolio();
   }, []);
+
+  const totalValue = portfolio.reduce(
+    (sum, coin) => sum + coin.amount * coin.current_price,
+    0
+  );
+  const avgValueCoin = totalValue / portfolio.length;
+  const sumPriceChange24h = portfolio.reduce(
+    (sum, coin) => sum + (coin.amount * coin.price_change_24h || 0),
+    0
+  );
+  const totalChangePercent =
+    (sumPriceChange24h / (totalValue - sumPriceChange24h)) * 100;
+
+  const bestPerforming = [...portfolio]
+    .sort(
+      (a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h
+    )[0]
+    .coin_id.toUpperCase();
+
+  const worstPerforming = [...portfolio]
+    .sort(
+      (a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h
+    )[0]
+    .coin_id.toUpperCase();
+
+  // format for piechart data
+  const chartData = portfolio.map((coin) => ({
+    name: coin.coin_id.toUpperCase(),
+    value: coin.amount * coin.current_price,
+  }));
+  const threshold = 5; // threshold in % for "others" category
+
+  // filter low value coins < threshold
+  const lowValueCoins = chartData.filter(
+    (coin) => (coin.value / totalValue) * 100 < threshold
+  );
+  // sum value of low value coins
+  const sumLowValue = lowValueCoins.reduce((sum, coin) => sum + coin.value, 0);
+
+  const highValueCoins = chartData.filter(
+    (coin) => (coin.value / totalValue) * 100 > threshold
+  );
+
+  // groups sum value of low value coins into "others"
+  const sortedData =
+    lowValueCoins.length > 0
+      ? [...highValueCoins, { name: "Others", value: sumLowValue }]
+      : highValueCoins;
 
   useEffect(() => {
     if (!query.trim()) {
@@ -113,41 +162,95 @@ function Portfolio() {
     }
   };
 
-  const chartData = portfolio.map((coin) => ({
-    name: coin.coin_id.toUpperCase(),
-    value: coin.amount * coin.current_price,
-  }));
-
   return (
-    <div className="portfolio-wrapper">
-      <div>
-        <ResponsiveContainer width="100%" height={400}>
-          <PieChart>
-            <Pie
-              data={chartData}
-              innerRadius={60}
-              outerRadius={80}
-              dataKey="value"
+    <div>
+      <div style={{ display: "flex" }}>
+        <div className="portfolio-summary" style={{ flex: 1 }}>
+          <div className="summary-card">
+            <p className="label">Total Value</p>
+            <p className="value">${totalValue.toLocaleString()}</p>
+          </div>
+          <div className="summary-card">
+            <p className="label">24H Change</p>
+            <p
+              className="value"
+              style={{
+                color: sumPriceChange24h < 0 ? "red" : "green",
+              }}
             >
-              {chartData.map((entry, index) => (
-                <Cell
-                  key={`cell-${entry.name}`}
-                  fill={COLORS[index % COLORS.length]}
-                />
-              ))}
-            </Pie>
-            <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
-            <Legend
-              height={100}
-              align="center"
-              iconSize={12}
-              iconType="circle"
-            />
-          </PieChart>
-        </ResponsiveContainer>
+              ${sumPriceChange24h.toLocaleString()} (
+              {totalChangePercent.toFixed(2)}%)
+            </p>
+          </div>
+          <div className="summary-card">
+            <p className="label">Number of Holdings</p>
+            <p className="value">{portfolio.length}</p>
+          </div>
+          {portfolio.length > 0 && (
+            <div className="summary-card">
+              <p className="label">Top Holding</p>
+              <p className="value">{portfolio[0].coin_id.toUpperCase()}</p>
+            </div>
+          )}
+          {portfolio.length > 0 && (
+            <div className="summary-card">
+              <p className="label">Smallest Holding</p>
+              <p className="value">
+                {portfolio[portfolio.length - 1].coin_id.toUpperCase()}
+              </p>
+            </div>
+          )}
+          <div className="summary-card">
+            <p className="label">Average Coin Price</p>
+            <p className="value">${avgValueCoin.toLocaleString()}</p>
+          </div>
+          <div className="summary-card">
+            <p className="label">Best Performing</p>
+            <p className="value">{bestPerforming}</p>
+          </div>
+          <div className="summary-card">
+            <p className="label">Worst Performing</p>
+            <p className="value">${worstPerforming}</p>
+          </div>
+        </div>
+        <div style={{ flex: 1 }}>
+          <ResponsiveContainer width="100%" height={400}>
+            <PieChart>
+              <Pie
+                data={sortedData}
+                innerRadius={80}
+                outerRadius={100}
+                cx="50%"
+                cy="50%"
+                dataKey="value"
+                stroke="#151515"
+                label={({ name, percent }: PiechartLabel) => {
+                  return `${name} ${(percent * 100).toFixed(1)}%`;
+                }}
+              >
+                {chartData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${entry.name}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={(value: number) => `$${value.toFixed(2)}`}
+                contentStyle={{
+                  backgroundColor: "#3c4657ff",
+                  border: "none",
+                  borderRadius: "8px",
+                  color: "#ffffffd6",
+                }}
+                itemStyle={{ color: "#ffffff" }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
       </div>
       <div className="portfolio-table-wrapper">
-        <form onSubmit={handleSubmit}>
+        <form className="portfolio-form" onSubmit={handleSubmit}>
           <input
             type="text"
             placeholder="Search coins"
@@ -206,8 +309,9 @@ function Portfolio() {
             type="submit"
             disabled={loading}
             className="submit-register-button"
+            style={{ height: "49px", marginTop: "0px" }}
           >
-            {loading ? "Adding..." : "Add to Portfolio"}
+            {loading ? "Buying..." : "Buy"}
           </button>
         </form>
 
@@ -217,7 +321,7 @@ function Portfolio() {
               <th style={{ textAlign: "left" }}>Coin</th>
               <th>Amount</th>
               <th>Price</th>
-              <th>Price +/- 24h</th>
+              <th>24H change</th>
               <th> Total </th>
             </tr>
           </thead>
@@ -239,7 +343,7 @@ function Portfolio() {
                   {coin.coin_id}
                 </td>
                 <td>{coin.amount}</td>
-                <td>${coin.current_price.toFixed(2)}</td>
+                <td>${coin.current_price.toLocaleString()}</td>
                 <td
                   style={{
                     color:
@@ -251,7 +355,7 @@ function Portfolio() {
                 >
                   {coin.price_change_percentage_24h.toFixed(2)}%
                 </td>
-                <td>${(coin.amount * coin.current_price).toFixed(2)}</td>
+                <td>${(coin.amount * coin.current_price).toLocaleString()}</td>
               </tr>
             ))}
           </tbody>

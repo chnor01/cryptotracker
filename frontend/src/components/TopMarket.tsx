@@ -159,7 +159,8 @@ function TopMarket() {
                 </td>
                 <td>${coin.market_cap.toLocaleString()}</td>
                 <td>
-                  {coin.circulating_supply} {coin.symbol.toUpperCase()}
+                  {coin.circulating_supply.toLocaleString()}{" "}
+                  {coin.symbol.toUpperCase()}
                 </td>
               </tr>
             ))}

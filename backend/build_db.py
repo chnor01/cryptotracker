@@ -349,10 +349,10 @@ def create_portfolio_table():
         conn.close()
 
 
-def retrieve_ohlc(coin_id):   
+def retrieve_ohlc(coin_id, days):   
     url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/ohlc"
     headers = {"x-cg-demo-api-key" : COINGECKO_API_KEY}
-    params = {"vs_currency": "usd", "days": 30}
+    params = {"vs_currency": "usd", "days": days}
     try:
         response = requests.get(url, headers=headers, params=params)
         return response.json()
@@ -411,7 +411,7 @@ def batch_retrieve_save_ohlc():
         top_marketcap_coins.append(coin.get("id"))
     
     for coin_id in top_marketcap_coins:
-        ohlc_data = retrieve_ohlc(coin_id)
+        ohlc_data = retrieve_ohlc(coin_id, days=30)
         save_ohlc(coin_id, ohlc_data)
         time.sleep(2)
 
