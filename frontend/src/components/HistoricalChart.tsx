@@ -81,13 +81,7 @@ function HistoricalChart({ coinId }: HistoricalChartProps) {
               <img
                 src={`http://localhost:8000/icons/${coinId}.png`}
                 alt={livePrices.symbol}
-                style={{
-                  width: 32,
-                  height: 32,
-                  marginRight: 8,
-                  verticalAlign: "middle",
-                  borderRadius: "50%",
-                }}
+                className="coin-icon"
               />
               {(coinId + " " + livePrices.symbol).toUpperCase()}{" "}
             </span>

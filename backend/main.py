@@ -390,11 +390,21 @@ def get_portfolio(
 
         query = """
             SELECT 
-            portfolio.id, portfolio.coin_id, portfolio.amount, portfolio.created_at, 
-            prices.current_price, prices.market_cap, prices.high_24h, prices.low_24h, prices.price_change_24h, 
-            prices.price_change_percentage_24h
+            portfolio.id,
+            portfolio.coin_id,
+            portfolio.amount,
+            portfolio.created_at,
+            prices.current_price,
+            prices.market_cap,
+            prices.high_24h,
+            prices.low_24h,
+            prices.price_change_24h,
+            prices.price_change_percentage_24h,
+            coins.name,
+            coins.symbol
             FROM portfolio
             JOIN prices ON portfolio.coin_id = prices.id
+            JOIN coins ON portfolio.coin_id = coins.id
             WHERE portfolio.user_id = %s;
         """
         

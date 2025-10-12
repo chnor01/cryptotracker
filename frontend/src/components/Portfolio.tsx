@@ -1,6 +1,16 @@
 import { useEffect, useState } from "react";
 import { addPortfolio, getPortfolio, searchCoin } from "@/api/cryptoApi";
 import { PieChart, Pie, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import {
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  Activity,
+  CrownIcon,
+  BriefcaseBusiness,
+  Frown,
+  Scale,
+} from "lucide-react";
 
 interface PiechartLabel {
   name: string;
@@ -24,6 +34,8 @@ interface Portfolio {
   low_24h: number;
   price_change_24h: number;
   price_change_percentage_24h: number;
+  name: string;
+  symbol: string;
 }
 
 const COLORS = [
@@ -40,6 +52,17 @@ const COLORS = [
   "#FEC8D8",
   "#E0BBE4",
 ];
+
+const formatNumber = (num: number | null) => {
+  const absNum = Math.abs(num);
+  const sign = num < 0 ? "-" : "";
+  if (absNum === null) return "—";
+  if (absNum >= 1e12) return (absNum / 1e12).toFixed(2) + "T";
+  if (absNum >= 1e9) return (absNum / 1e9).toFixed(2) + "B";
+  if (absNum >= 1e6) return (absNum / 1e6).toFixed(2) + "M";
+  if (absNum >= 1e3) return (absNum / 1e3).toFixed(2) + "K";
+  return `${sign}${absNum.toLocaleString()}`;
+};
 
 function Portfolio() {
   const [portfolio, setPortfolio] = useState<Portfolio[]>([]);
@@ -72,7 +95,7 @@ function Portfolio() {
     (sum, coin) => sum + coin.amount * coin.current_price,
     0
   );
-  const avgValueCoin = totalValue / portfolio.length;
+  const avgHoldingPrice = totalValue / portfolio.length;
   const sumPriceChange24h = portfolio.reduce(
     (sum, coin) => sum + (coin.amount * coin.price_change_24h || 0),
     0
@@ -80,21 +103,25 @@ function Portfolio() {
   const totalChangePercent =
     (sumPriceChange24h / (totalValue - sumPriceChange24h)) * 100;
 
-  const bestPerforming = [...portfolio]
-    .sort(
-      (a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h
-    )[0]
-    .coin_id.toUpperCase();
+  const bestPerforming =
+    portfolio.length > 0
+      ? [...portfolio].sort(
+          (a, b) =>
+            b.price_change_percentage_24h - a.price_change_percentage_24h
+        )[0]
+      : null;
 
-  const worstPerforming = [...portfolio]
-    .sort(
-      (a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h
-    )[0]
-    .coin_id.toUpperCase();
+  const worstPerforming =
+    portfolio.length > 0
+      ? [...portfolio].sort(
+          (a, b) =>
+            a.price_change_percentage_24h - b.price_change_percentage_24h
+        )[0]
+      : null;
 
   // format for piechart data
   const chartData = portfolio.map((coin) => ({
-    name: coin.coin_id.toUpperCase(),
+    name: coin.symbol.toUpperCase(),
     value: coin.amount * coin.current_price,
   }));
   const threshold = 5; // threshold in % for "others" category
@@ -167,50 +194,107 @@ function Portfolio() {
       <div style={{ display: "flex" }}>
         <div className="portfolio-summary" style={{ flex: 1 }}>
           <div className="summary-card">
+            <DollarSign className="summary-icon" style={{ color: "green" }} />
             <p className="label">Total Value</p>
-            <p className="value">${totalValue.toLocaleString()}</p>
+            <p className="value">${formatNumber(totalValue)}</p>
           </div>
           <div className="summary-card">
+            <Activity className="summary-icon" style={{ color: "lightblue" }} />
             <p className="label">24H Change</p>
             <p
               className="value"
               style={{
-                color: sumPriceChange24h < 0 ? "red" : "green",
+                color: sumPriceChange24h < 0 ? "#ff7675" : "lightgreen",
               }}
             >
-              ${sumPriceChange24h.toLocaleString()} (
+              ${formatNumber(sumPriceChange24h)} (
               {totalChangePercent.toFixed(2)}%)
             </p>
           </div>
           <div className="summary-card">
-            <p className="label">Number of Holdings</p>
+            <BriefcaseBusiness
+              className="summary-icon"
+              style={{ color: "#964b00ff" }}
+            />
+            <p className="label">Total Holdings</p>
             <p className="value">{portfolio.length}</p>
           </div>
           {portfolio.length > 0 && (
             <div className="summary-card">
-              <p className="label">Top Holding</p>
-              <p className="value">{portfolio[0].coin_id.toUpperCase()}</p>
+              <CrownIcon className="summary-icon" style={{ color: "gold" }} />
+              <p className="label">Biggest Holding</p>
+              <p className="value">
+                <img
+                  src={`http://localhost:8000/icons/${portfolio[0].coin_id}.png`}
+                  alt={portfolio[0].symbol}
+                  className="coin-icon"
+                />
+                {portfolio[0].symbol.toUpperCase()}
+              </p>
             </div>
           )}
           {portfolio.length > 0 && (
             <div className="summary-card">
+              <Frown className="summary-icon" style={{ color: "grey" }} />
               <p className="label">Smallest Holding</p>
               <p className="value">
-                {portfolio[portfolio.length - 1].coin_id.toUpperCase()}
+                <img
+                  src={`http://localhost:8000/icons/${
+                    portfolio[portfolio.length - 1].coin_id
+                  }.png`}
+                  alt={portfolio[portfolio.length - 1].symbol}
+                  className="coin-icon"
+                />
+                {portfolio[portfolio.length - 1].symbol.toUpperCase()}
               </p>
             </div>
           )}
           <div className="summary-card">
-            <p className="label">Average Coin Price</p>
-            <p className="value">${avgValueCoin.toLocaleString()}</p>
+            <Scale className="summary-icon" style={{ color: "#c0c0c0" }} />
+            <p className="label">Avg. Holding Price</p>
+            <p className="value">${formatNumber(avgHoldingPrice)}</p>
           </div>
           <div className="summary-card">
+            <TrendingUp
+              className="summary-icon"
+              style={{ color: "lightgreen" }}
+            />
             <p className="label">Best Performing</p>
-            <p className="value">{bestPerforming}</p>
+            <p className="value">
+              {bestPerforming ? (
+                <>
+                  <img
+                    src={`http://localhost:8000/icons/${bestPerforming.coin_id}.png`}
+                    alt={bestPerforming.symbol}
+                    className="coin-icon"
+                  />
+                  {bestPerforming.symbol.toUpperCase()}
+                </>
+              ) : (
+                "—"
+              )}
+            </p>
           </div>
           <div className="summary-card">
+            <TrendingDown
+              className="summary-icon"
+              style={{ color: "#ff7675" }}
+            />
             <p className="label">Worst Performing</p>
-            <p className="value">${worstPerforming}</p>
+            <p className="value">
+              {worstPerforming ? (
+                <>
+                  <img
+                    src={`http://localhost:8000/icons/${worstPerforming.coin_id}.png`}
+                    alt={worstPerforming.symbol}
+                    className="coin-icon"
+                  />
+                  {worstPerforming.symbol.toUpperCase()}
+                </>
+              ) : (
+                "—"
+              )}
+            </p>
           </div>
         </div>
         <div style={{ flex: 1 }}>
@@ -331,7 +415,7 @@ function Portfolio() {
                 <td style={{ textAlign: "left" }}>
                   <img
                     src={`http://localhost:8000/icons/${coin.coin_id}.png`}
-                    alt={coin.coin_id}
+                    alt={coin.symbol}
                     style={{
                       width: 26,
                       height: 26,
@@ -340,7 +424,7 @@ function Portfolio() {
                       borderRadius: "50%",
                     }}
                   />
-                  {coin.coin_id}
+                  {coin.symbol.toUpperCase()}, {coin.name}
                 </td>
                 <td>{coin.amount}</td>
                 <td>${coin.current_price.toLocaleString()}</td>

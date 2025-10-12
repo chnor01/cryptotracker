@@ -77,7 +77,15 @@ function StatsDisplay({ coinId }: CoinStatsProps) {
           </div>
           <div className="stat-card">
             <p className="label">Market Cap 24H %</p>
-            <p className="value">
+            <p
+              className="value"
+              style={{
+                color:
+                  coinData.market_cap_change_percentage_24h < 0
+                    ? "#ff7675"
+                    : "lightgreen",
+              }}
+            >
               {coinData.market_cap_change_percentage_24h}%
             </p>
           </div>

@@ -135,15 +135,9 @@ function TopMarket() {
                   <img
                     src={`http://localhost:8000/icons/${coin.id}.png`}
                     alt={coin.symbol}
-                    style={{
-                      width: 26,
-                      height: 26,
-                      marginRight: 8,
-                      verticalAlign: "middle",
-                      borderRadius: "50%",
-                    }}
+                    className="coin-icon"
                   />
-                  {coin.name}
+                  {coin.symbol.toUpperCase()}, {coin.name}
                 </td>
                 <td>${coin.current_price.toLocaleString()}</td>
                 <td
