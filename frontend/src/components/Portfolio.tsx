@@ -1,6 +1,17 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { addPortfolio, getPortfolio, searchCoin } from "@/api/cryptoApi";
-import { PieChart, Pie, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+} from "recharts";
 import {
   TrendingUp,
   TrendingDown,
@@ -10,6 +21,8 @@ import {
   BriefcaseBusiness,
   Frown,
   Scale,
+  BadgeDollarSign,
+  Calendar1,
 } from "lucide-react";
 
 interface PiechartLabel {
@@ -75,6 +88,8 @@ function Portfolio() {
   const [results, setResults] = useState<Coin[]>([]);
   const [isFocused, setIsFocused] = useState(false);
 
+  const navigate = useNavigate();
+
   const fetchPortfolio = async () => {
     try {
       const data = await getPortfolio();
@@ -97,7 +112,7 @@ function Portfolio() {
   );
   const avgHoldingPrice = totalValue / portfolio.length;
   const sumPriceChange24h = portfolio.reduce(
-    (sum, coin) => sum + (coin.amount * coin.price_change_24h || 0),
+    (sum, coin) => sum + coin.amount * coin.price_change_24h,
     0
   );
   const totalChangePercent =
@@ -119,6 +134,25 @@ function Portfolio() {
         )[0]
       : null;
 
+  const totalMarketCap = portfolio.reduce(
+    (sum, coin) => sum + coin.market_cap,
+    0
+  );
+
+  const oldestCoin =
+    portfolio.length > 0
+      ? [...portfolio].sort(
+          (a, b) =>
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        )[0]
+      : null;
+
+  // format for barchart
+  const barData = portfolio.map((coin) => ({
+    name: coin.symbol.toUpperCase(),
+    change: coin.price_change_percentage_24h,
+  }));
+
   // format for piechart data
   const chartData = portfolio.map((coin) => ({
     name: coin.symbol.toUpperCase(),
@@ -133,9 +167,10 @@ function Portfolio() {
   // sum value of low value coins
   const sumLowValue = lowValueCoins.reduce((sum, coin) => sum + coin.value, 0);
 
-  const highValueCoins = chartData.filter(
-    (coin) => (coin.value / totalValue) * 100 > threshold
-  );
+  const highValueCoins =
+    portfolio.length > 0
+      ? chartData.filter((coin) => (coin.value / totalValue) * 100 > threshold)
+      : null;
 
   // groups sum value of low value coins into "others"
   const sortedData =
@@ -196,7 +231,9 @@ function Portfolio() {
           <div className="summary-card">
             <DollarSign className="summary-icon" style={{ color: "green" }} />
             <p className="label">Total Value</p>
-            <p className="value">${formatNumber(totalValue)}</p>
+            <p className="value">
+              {portfolio.length > 0 ? <>${formatNumber(totalValue)}</> : "—"}
+            </p>
           </div>
           <div className="summary-card">
             <Activity className="summary-icon" style={{ color: "lightblue" }} />
@@ -204,11 +241,22 @@ function Portfolio() {
             <p
               className="value"
               style={{
-                color: sumPriceChange24h < 0 ? "#ff7675" : "lightgreen",
+                color:
+                  portfolio.length === 0
+                    ? "inherit"
+                    : sumPriceChange24h < 0
+                    ? "#ff7675"
+                    : "lightgreen",
               }}
             >
-              ${formatNumber(sumPriceChange24h)} (
-              {totalChangePercent.toFixed(2)}%)
+              {portfolio.length > 0 ? (
+                <>
+                  ${formatNumber(sumPriceChange24h)} (
+                  {totalChangePercent.toFixed(2)}%)
+                </>
+              ) : (
+                "—"
+              )}
             </p>
           </div>
           <div className="summary-card">
@@ -219,40 +267,56 @@ function Portfolio() {
             <p className="label">Total Holdings</p>
             <p className="value">{portfolio.length}</p>
           </div>
-          {portfolio.length > 0 && (
-            <div className="summary-card">
-              <CrownIcon className="summary-icon" style={{ color: "gold" }} />
-              <p className="label">Biggest Holding</p>
-              <p className="value">
-                <img
-                  src={`http://localhost:8000/icons/${portfolio[0].coin_id}.png`}
-                  alt={portfolio[0].symbol}
-                  className="coin-icon"
-                />
-                {portfolio[0].symbol.toUpperCase()}
-              </p>
-            </div>
-          )}
-          {portfolio.length > 0 && (
-            <div className="summary-card">
-              <Frown className="summary-icon" style={{ color: "grey" }} />
-              <p className="label">Smallest Holding</p>
-              <p className="value">
-                <img
-                  src={`http://localhost:8000/icons/${
-                    portfolio[portfolio.length - 1].coin_id
-                  }.png`}
-                  alt={portfolio[portfolio.length - 1].symbol}
-                  className="coin-icon"
-                />
-                {portfolio[portfolio.length - 1].symbol.toUpperCase()}
-              </p>
-            </div>
-          )}
+
+          <div className="summary-card">
+            <CrownIcon className="summary-icon" style={{ color: "gold" }} />
+            <p className="label">Biggest Holding</p>
+            <p className="value">
+              {portfolio.length > 0 ? (
+                <>
+                  <img
+                    src={`http://localhost:8000/icons/${portfolio[0].coin_id}.png`}
+                    alt={portfolio[0].symbol}
+                    className="coin-icon"
+                  />
+                  {portfolio[0].symbol.toUpperCase()}
+                </>
+              ) : (
+                "—"
+              )}
+            </p>
+          </div>
+
+          <div className="summary-card">
+            <Frown className="summary-icon" style={{ color: "grey" }} />
+            <p className="label">Smallest Holding</p>
+            <p className="value">
+              {portfolio.length > 0 ? (
+                <>
+                  <img
+                    src={`http://localhost:8000/icons/${
+                      portfolio[portfolio.length - 1].coin_id
+                    }.png`}
+                    alt={portfolio[portfolio.length - 1].symbol}
+                    className="coin-icon"
+                  />
+                  {portfolio[portfolio.length - 1].symbol.toUpperCase()}
+                </>
+              ) : (
+                "—"
+              )}
+            </p>
+          </div>
           <div className="summary-card">
             <Scale className="summary-icon" style={{ color: "#c0c0c0" }} />
             <p className="label">Avg. Holding Price</p>
-            <p className="value">${formatNumber(avgHoldingPrice)}</p>
+            <p className="value">
+              {portfolio.length > 0 ? (
+                <>${formatNumber(avgHoldingPrice)}</>
+              ) : (
+                "—"
+              )}
+            </p>
           </div>
           <div className="summary-card">
             <TrendingUp
@@ -296,9 +360,65 @@ function Portfolio() {
               )}
             </p>
           </div>
+          <div className="summary-card">
+            <BadgeDollarSign
+              className="summary-icon"
+              style={{ color: "lightgreen" }}
+            />
+            <p className="label">Total Market Cap</p>
+            <p className="value">
+              {portfolio.length > 0 ? (
+                <>${formatNumber(totalMarketCap)}</>
+              ) : (
+                "—"
+              )}
+            </p>
+          </div>
+          <div className="summary-card">
+            <Calendar1 className="summary-icon" style={{ color: "#fff" }} />
+            <p className="label">Oldest Coin Tracked</p>
+            <p className="value">
+              {portfolio.length > 0 ? (
+                <>
+                  <img
+                    src={`http://localhost:8000/icons/${oldestCoin.coin_id}.png`}
+                    alt={oldestCoin.symbol}
+                    className="coin-icon"
+                  />
+                  {oldestCoin.symbol.toUpperCase()}
+                </>
+              ) : (
+                "—"
+              )}
+            </p>
+          </div>
         </div>
-        <div style={{ flex: 1 }}>
-          <ResponsiveContainer width="100%" height={400}>
+        <div className="portfolio-charts-container" style={{ flex: 1 }}>
+          <ResponsiveContainer width="50%" height="100%">
+            <BarChart data={barData}>
+              <XAxis dataKey="name" tick={{ fill: "#aaa" }} />
+              <YAxis tick={{ fill: "#aaa" }} />
+              <Tooltip
+                formatter={(value: number) => `${value.toFixed(2)}%`}
+                contentStyle={{
+                  backgroundColor: "#3c4657ff",
+                  border: "none",
+                  borderRadius: "8px",
+                  color: "#ffffffd6",
+                }}
+                itemStyle={{ color: "#ffffff" }}
+              />
+              <Bar dataKey="change">
+                {barData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={entry.change >= 0 ? "lightgreen" : "#ff7675"}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+          <ResponsiveContainer width="50%" height="100%">
             <PieChart>
               <Pie
                 data={sortedData}
@@ -411,7 +531,10 @@ function Portfolio() {
           </thead>
           <tbody>
             {portfolio.map((coin) => (
-              <tr key={coin.id}>
+              <tr
+                key={coin.id}
+                onClick={() => navigate(`/coins/${coin.coin_id}`)}
+              >
                 <td style={{ textAlign: "left" }}>
                   <img
                     src={`http://localhost:8000/icons/${coin.coin_id}.png`}
