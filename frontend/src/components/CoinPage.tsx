@@ -10,7 +10,7 @@ function CoinPage() {
   return (
     <div>
       <SearchCoins />
-      <div style={{ display: "flex", minHeight: "541px" }}>
+      <div style={{ display: "flex" }}>
         <div style={{ flex: 1 }}>
           <HistoricalChart coinId={coinId} />
         </div>

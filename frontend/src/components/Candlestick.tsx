@@ -51,7 +51,7 @@ function Candlestick({ coinId }: CandlestickProps) {
     animationEnabled: true,
     zoomEnabled: true,
     theme: "dark1",
-    backgroundColor: "#151515",
+    backgroundColor: "transparent",
     toolTip: {
       contentFormatter: function (e) {
         const point = e.entries[0].dataPoint;
@@ -120,40 +120,45 @@ function Candlestick({ coinId }: CandlestickProps) {
 
   return (
     <div className="candlestick-container">
-      <div className="candlestick-btns">
-        {[1, 7, 14, 30].map((d) => (
-          <button
-            key={d}
-            onClick={() => setDays(d)}
-            className={days === d ? "active" : ""}
-          >
-            {`${d}D`}
-          </button>
-        ))}
-      </div>
-      <div>
-        {error && (
-          <div
-            className="loading-wrapper"
-            style={{ width: "800px", height: "350px" }}
-          >
-            {error}
+      <div className="chart-glass">
+        <div className="candlestick-top-row">
+          <div className="candlestick-btns">
+            {[1, 7, 14, 30].map((d) => (
+              <button
+                key={d}
+                onClick={() => setDays(d)}
+                className={days === d ? "active" : ""}
+              >
+                {`${d}d`}
+              </button>
+            ))}
           </div>
-        )}
-        {loading && (
-          <div
-            className="loading-wrapper"
-            style={{ width: "800px", height: "350px" }}
-          >
-            <span className="loader"></span>
-          </div>
-        )}
-        {!loading && !error && dataPoints.length > 0 && (
-          <CanvasJSChart
-            options={options}
-            onRef={(ref) => (chartRef.current = ref)}
-          />
-        )}
+          <h3 className="candlestick-title">Candlestick Chart</h3>
+        </div>
+        <div>
+          {error && (
+            <div
+              className="loading-wrapper"
+              style={{ width: "800px", height: "350px" }}
+            >
+              {error}
+            </div>
+          )}
+          {loading && (
+            <div
+              className="loading-wrapper"
+              style={{ width: "800px", height: "350px" }}
+            >
+              <span className="loader"></span>
+            </div>
+          )}
+          {!loading && !error && dataPoints.length > 0 && (
+            <CanvasJSChart
+              options={options}
+              onRef={(ref) => (chartRef.current = ref)}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

@@ -148,10 +148,17 @@ function Portfolio() {
       : null;
 
   // format for barchart
-  const barData = portfolio.map((coin) => ({
-    name: coin.symbol.toUpperCase(),
-    change: coin.price_change_percentage_24h,
-  }));
+  const barData = [...portfolio]
+    .sort(
+      (a, b) =>
+        Math.abs(b.price_change_percentage_24h) -
+        Math.abs(a.price_change_percentage_24h)
+    )
+    .slice(0, 5)
+    .map((coin) => ({
+      name: coin.symbol.toUpperCase(),
+      change: coin.price_change_percentage_24h,
+    }));
 
   // format for piechart data
   const chartData = portfolio.map((coin) => ({
@@ -394,63 +401,75 @@ function Portfolio() {
           </div>
         </div>
         <div className="portfolio-charts-container" style={{ flex: 1 }}>
-          <ResponsiveContainer width="50%" height="100%">
-            <BarChart data={barData}>
-              <XAxis dataKey="name" tick={{ fill: "#aaa" }} />
-              <YAxis tick={{ fill: "#aaa" }} />
-              <Tooltip
-                formatter={(value: number) => `${value.toFixed(2)}%`}
-                contentStyle={{
-                  backgroundColor: "#3c4657ff",
-                  border: "none",
-                  borderRadius: "8px",
-                  color: "#ffffffd6",
-                }}
-                itemStyle={{ color: "#ffffff" }}
-              />
-              <Bar dataKey="change">
-                {barData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={entry.change >= 0 ? "lightgreen" : "#ff7675"}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-          <ResponsiveContainer width="50%" height="100%">
-            <PieChart>
-              <Pie
-                data={sortedData}
-                innerRadius={80}
-                outerRadius={100}
-                cx="50%"
-                cy="50%"
-                dataKey="value"
-                stroke="#151515"
-                label={({ name, percent }: PiechartLabel) => {
-                  return `${name} ${(percent * 100).toFixed(1)}%`;
-                }}
-              >
-                {chartData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${entry.name}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip
-                formatter={(value: number) => `$${value.toFixed(2)}`}
-                contentStyle={{
-                  backgroundColor: "#3c4657ff",
-                  border: "none",
-                  borderRadius: "8px",
-                  color: "#ffffffd6",
-                }}
-                itemStyle={{ color: "#ffffff" }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+          <div style={{ flex: 1 }}>
+            <h3 style={{ textAlign: "center" }}>24 Price Change</h3>
+            <ResponsiveContainer width="100%" height="80%">
+              <BarChart data={barData}>
+                <XAxis dataKey="name" tick={{ fill: "#aaa" }} />
+                <YAxis
+                  tick={{ fill: "#aaa" }}
+                  tickFormatter={(value) => `${value}%`}
+                />
+                <Tooltip
+                  formatter={(value: number) => [
+                    `${value.toFixed(2)}%`,
+                    "24h change",
+                  ]}
+                  contentStyle={{
+                    backgroundColor: "#363d49ff",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontWeight: "bold",
+                    color: "rgba(161, 158, 158, 1)",
+                  }}
+                  itemStyle={{ color: "#fff", fontWeight: "500" }}
+                />
+                <Bar dataKey="change">
+                  {barData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.change >= 0 ? "lightgreen" : "#ff7675"}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div style={{ flex: 1 }}>
+            <h3 style={{ textAlign: "center" }}>Diversification</h3>
+            <ResponsiveContainer width="100%" height="80%">
+              <PieChart>
+                <Pie
+                  data={sortedData}
+                  innerRadius={80}
+                  outerRadius={100}
+                  cx="50%"
+                  cy="45%"
+                  dataKey="value"
+                  stroke="#151515"
+                  label={({ name, percent }: PiechartLabel) => {
+                    return `${name} ${(percent * 100).toFixed(1)}%`;
+                  }}
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${entry.name}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value: number) => `$${formatNumber(value)}`}
+                  contentStyle={{
+                    backgroundColor: "#3c4657ff",
+                    border: "none",
+                    borderRadius: "10px",
+                  }}
+                  itemStyle={{ color: "#ffffff" }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
       <div className="portfolio-table-wrapper">

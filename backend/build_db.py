@@ -420,6 +420,6 @@ def batch_retrieve_save_ohlc():
 #save_coins_id()
 #create_users_table()
 #create_portfolio_table()
-#batch_retrieve_save_coins_prices()
-#batch_retrieve_save_hist_prices()
+batch_retrieve_save_coins_prices()
+batch_retrieve_save_hist_prices()
 batch_retrieve_save_ohlc()
