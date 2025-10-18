@@ -9,3 +9,7 @@ export const validateEmail = (email: string) => {
 export const validatePassword = (password: string) => {
     return password.length >= 8;
 };
+
+export const confirmPassword = (initialPassword: string, confirmedPassword: string) => {
+    return initialPassword === confirmedPassword;
+};

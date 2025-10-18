@@ -5,18 +5,21 @@ import {
   validateUsername,
   validateEmail,
   validatePassword,
+  confirmPassword,
 } from "../helper/ValidateRegistration";
 
 function Register() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmedPassword, setConfirmedPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [errors, setErrors] = useState<{
     username?: string;
     email?: string;
     password?: string;
+    confirmedPassword?: string;
   }>({});
   const navigate = useNavigate();
 
@@ -33,6 +36,10 @@ function Register() {
     }
     if (!validatePassword(password)) {
       newErrors.password = "Must be at least 8 chars.";
+    }
+
+    if (!confirmPassword(password, confirmedPassword)) {
+      newErrors.confirmedPassword = "Passwords do not match.";
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -89,6 +96,19 @@ function Register() {
             onChange={(e) => setPassword(e.target.value)}
           />
           {errors.password && <p className="error-text">{errors.password}</p>}
+
+          <input
+            className={`form-field ${
+              errors.confirmedPassword ? "input-error" : ""
+            }`}
+            type="password"
+            placeholder="Confirm password"
+            value={confirmedPassword}
+            onChange={(e) => setConfirmedPassword(e.target.value)}
+          />
+          {errors.confirmedPassword && (
+            <p className="error-text">{errors.confirmedPassword}</p>
+          )}
 
           <button
             type="submit"

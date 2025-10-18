@@ -40,7 +40,7 @@
 .results-container {
   position: absolute;
   top: 2.8rem;
-  left: 750px;
+  margin-left: 18px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   width: 422px;
   max-height: 300px;
@@ -50,10 +50,9 @@
 }
 .portfoliosearch-container {
   position: absolute;
-  top: 575px;
-  left: 560px;
+  top: 4rem;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-  width: 422px;
+  width: 445px;
   max-height: 300px;
   overflow-y: auto;
   background: rgba(0, 0, 0, 1);
@@ -62,6 +61,7 @@
 
 .portfolio-form {
   min-width: 580px;
+  position: relative;
 }
 
 .top-market-app {
