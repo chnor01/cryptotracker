@@ -43,24 +43,28 @@ function HistoricalChart({ coinId }: HistoricalChartProps) {
     const loadData = async () => {
       setLoading(true);
       setError(null);
+
       try {
         const [liveData, rawData] = await Promise.all([
-          getCoin(coinId),
-          getHistoricalPrices(coinId, days),
+          getCoin(coinId).catch(() => {
+            setError("Failed to fetch data");
+            return null;
+          }),
+          getHistoricalPrices(coinId, days).catch(() => {
+            setError("Failed to fetch data");
+            return [];
+          }),
         ]);
-        console.log(rawData);
-        const formatted: HistoricalData[] = rawData.map(
-          (item: HistoricalData) => ({
-            ...item,
-            timestamp: new Date(item.timestamp).toLocaleDateString(),
-          })
-        );
-        setData(formatted);
-        setLivePrices(liveData);
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("Failed to fetch data");
-        setData([]);
+
+        const formatted: HistoricalData[] = Array.isArray(rawData)
+          ? rawData.map((item: HistoricalData) => ({
+              ...item,
+              timestamp: new Date(item.timestamp).toLocaleDateString(),
+            }))
+          : [];
+
+        if (formatted.length) setData(formatted);
+        if (liveData) setLivePrices(liveData);
       } finally {
         setLoading(false);
       }
