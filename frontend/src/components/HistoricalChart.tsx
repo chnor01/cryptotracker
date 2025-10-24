@@ -122,7 +122,7 @@ function HistoricalChart({ coinId }: HistoricalChartProps) {
               </button>
             ))}
           </div>
-          <h3>Historial Data</h3>
+          <h3>Historical Data</h3>
           <div className="chart-metrics-buttons">
             <button
               onClick={() => setCoinMetric("usd")}

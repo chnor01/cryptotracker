@@ -56,20 +56,17 @@ def save_coins_id():
         cursor.close()
         conn.close()
         
-#save_coins_id()
-
     
-def retrieve_coins_prices(coin_ids):   
+def retrieve_coins_data(page_num=1):
     url = "https://api.coingecko.com/api/v3/coins/markets"
     headers = {"x-cg-demo-api-key" : COINGECKO_API_KEY}
-    params = {"vs_currency": "usd", "ids": ",".join(coin_ids), "per_page": 250, "precision": 3}
+    params = {"vs_currency": "usd", "order": "market_cap_desc", "precision": 3, "per_page": 250, "page": page_num}
     try:
         response = requests.get(url, headers=headers, params=params)
         return response.json()
     except requests.RequestException as e:
         print(f"Error fetching data: {e}")
         return []
-
 
 def save_coins_prices(data, download_imgs=False):
     conn = get_db_connection()
@@ -211,33 +208,11 @@ def save_coins_prices(data, download_imgs=False):
             cursor.close()
             conn.close()
     
-def chunk_list(allcoins, batch):
-    for i in range(0, len(allcoins), batch):
-        yield allcoins[i:i + batch]
-    
-def batch_retrieve_save_coins_prices():
-    result_coins_id = retrieve_coins_id()
-    coin_ids = []
-    for coin in result_coins_id:
-        coin_ids.append(coin.get("id"))
-    
-    for batch in chunk_list(coin_ids, 250):
-        data = retrieve_coins_prices(batch)
+def batch_retrieve_save_coins_prices(max_pages = 4):
+    for page in range(1, max_pages + 1):
+        data = retrieve_coins_data(page)
         save_coins_prices(data, download_imgs=False)
-        time.sleep(2)
         
-
-def retrieve_top_market_cap_coins():   
-    url = "https://api.coingecko.com/api/v3/coins/markets"
-    headers = {"x-cg-demo-api-key" : COINGECKO_API_KEY}
-    params = {"vs_currency": "usd", "order": "market_cap_desc", "per_page": 50}
-    try:
-        response = requests.get(url, headers=headers, params=params)
-        return response.json()
-    except requests.RequestException as e:
-        print(f"Error fetching data: {e}")
-        return []
-    
 
 def retrieve_historical_prices(coin_id):   
     url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/market_chart"
@@ -290,9 +265,9 @@ def save_historical_prices(coin_id, hist_data):
         
 
 def batch_retrieve_save_hist_prices():
-    res = retrieve_top_market_cap_coins()
+    response = retrieve_coins_data()
     top_marketcap_coins = []
-    for coin in res:
+    for coin in response:
         top_marketcap_coins.append(coin.get("id"))
     
     for coin_id in top_marketcap_coins:
@@ -405,9 +380,9 @@ def save_ohlc(coin_id, ohlc_data):
         
 
 def batch_retrieve_save_ohlc():
-    res = retrieve_top_market_cap_coins()
+    response = retrieve_coins_data()
     top_marketcap_coins = []
-    for coin in res:
+    for coin in response:
         top_marketcap_coins.append(coin.get("id"))
     
     for coin_id in top_marketcap_coins:
@@ -420,6 +395,6 @@ def batch_retrieve_save_ohlc():
 #save_coins_id()
 #create_users_table()
 #create_portfolio_table()
-batch_retrieve_save_coins_prices()
-batch_retrieve_save_hist_prices()
-batch_retrieve_save_ohlc()
+#batch_retrieve_save_coins_prices()
+#batch_retrieve_save_hist_prices()
+#batch_retrieve_save_ohlc()
